@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Porto SFS · Dashboard Operacional</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;}
+body{font-family:'DM Sans',sans-serif;background:#F0F2F5;color:#1a1d23;font-size:13px;display:flex;flex-direction:column;}
+
+.topbar{background:#fff;border-bottom:1px solid #e2e5ec;padding:0 20px;height:50px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.logo{display:flex;align-items:center;gap:10px;}
+.logo-icon{width:30px;height:30px;background:#1a3a6b;border-radius:6px;display:flex;align-items:center;justify-content:center;}
+.logo-icon svg{width:16px;height:16px;fill:#fff;}
+.logo-name{font-size:14px;font-weight:600;letter-spacing:-0.3px;}
+.logo-sub{font-size:10px;color:#7b8494;}
+.topbar-right{display:flex;align-items:center;gap:18px;}
+.live{display:flex;align-items:center;gap:5px;font-size:11px;color:#7b8494;}
+.dot{width:7px;height:7px;border-radius:50%;background:#22c55e;animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.clock{font-family:'DM Mono',monospace;font-size:20px;font-weight:500;}
+.date{font-size:10px;color:#7b8494;text-align:right;}
+
+.ticker{height:24px;background:#1a3a6b;color:#fff;font-size:11px;overflow:hidden;flex-shrink:0;}
+.ticker-track{display:flex;align-items:center;height:100%;white-space:nowrap;animation:ticker 80s linear infinite;}
+@keyframes ticker{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+.ticker-sep{margin:0 20px;opacity:.3;}
+
+.grid{flex:1;display:grid;grid-template-columns:1fr 1fr 290px;grid-template-rows:1fr 1fr;gap:8px;padding:8px;overflow:hidden;}
+
+.card{background:#fff;border-radius:8px;border:1px solid #e2e5ec;display:flex;flex-direction:column;overflow:hidden;min-height:0;}
+.card-h{padding:7px 12px;border-bottom:1px solid #f0f2f6;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.card-title{font-size:10px;font-weight:600;color:#7b8494;text-transform:uppercase;letter-spacing:.7px;}
+.card-body{flex:1;overflow-y:auto;min-height:0;}
+::-webkit-scrollbar{width:3px}::-webkit-scrollbar-thumb{background:#ddd;border-radius:2px}
+
+.badge{font-size:10px;font-weight:600;padding:2px 6px;border-radius:4px;}
+.b-blue{background:#dbeafe;color:#1e40af;}.b-green{background:#dcfce7;color:#166534;}.b-amber{background:#fef3c7;color:#92400e;}.b-teal{background:#ccfbf1;color:#0f766e;}
+.src{font-size:9px;font-weight:500;padding:1px 5px;border-radius:3px;border:1px solid;}
+.src-g{background:#dcfce7;color:#166534;border-color:#bbf7d0;}
+.src-b{background:#dbeafe;color:#1e40af;border-color:#bfdbfe;}
+.src-t{background:#ccfbf1;color:#0f766e;border-color:#99f6e4;}
+.stag{font-size:9px;font-weight:600;letter-spacing:.7px;color:#94a3b8;text-transform:uppercase;}
+.mono{font-family:'DM Mono',monospace;}
+.btn-r{font-size:10px;color:#7b8494;background:none;border:1px solid #e2e5ec;border-radius:4px;padding:2px 7px;cursor:pointer;font-family:inherit;}
+.btn-r:hover{background:#f8f9fb;}
+@keyframes spin{to{transform:rotate(360deg)}}.sp{display:inline-block;animation:spin .8s linear infinite;}
+
+/* navios operando */
+.nrow,.nhead{display:grid;grid-template-columns:20px 62px 1fr 78px 78px 64px;gap:5px;align-items:center;padding:5px 12px;}
+.nhead{background:#fafbfc;border-bottom:1px solid #f0f2f6;position:sticky;top:0;}
+.nrow{border-bottom:1px solid #f8f9fb;}.nrow:last-child{border:none;}.nrow:hover{background:#fafbfc;}
+.bt{font-size:11px;font-weight:600;color:#1e40af;font-family:'DM Mono',monospace;background:#eff6ff;border-radius:4px;padding:2px 5px;text-align:center;}
+.pb{height:5px;background:#f1f5f9;border-radius:3px;overflow:hidden;}
+.pf{height:100%;border-radius:3px;}
+.pg{background:#22c55e;}.pb2{background:#3b82f6;}.pa{background:#f59e0b;}.pr{background:#ef4444;}
+
+/* lineup */
+.lrow,.lhead{display:grid;grid-template-columns:58px 54px 1fr 70px 90px 80px;gap:5px;align-items:center;padding:5px 12px;}
+.lhead{background:#fafbfc;border-bottom:1px solid #f0f2f6;position:sticky;top:0;}
+.lrow{border-bottom:1px solid #f8f9fb;}.lrow:last-child{border:none;}.lrow:hover{background:#fafbfc;}
+.st{font-size:9px;font-weight:600;padding:2px 5px;border-radius:3px;text-align:center;}
+.stB{background:#dcfce7;color:#166534;}.stA{background:#fef9c3;color:#854d0e;}.stE{background:#f1f5f9;color:#475569;}
+.bs{font-size:11px;font-weight:600;color:#1e40af;font-family:'DM Mono',monospace;background:#eff6ff;border-radius:3px;padding:2px 5px;text-align:center;}
+
+/* steelport */
+.srow,.shead{display:grid;grid-template-columns:1fr 72px 50px 58px;gap:5px;align-items:center;padding:5px 12px;}
+.shead{background:#fafbfc;border-bottom:1px solid #f0f2f6;position:sticky;top:0;}
+.srow{border-bottom:1px solid #f8f9fb;}.srow:last-child{border:none;}.srow:hover{background:#fafbfc;}
+.nt{font-size:10px;font-weight:600;color:#0f766e;background:#ccfbf1;border-radius:3px;padding:1px 5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.stot{display:grid;grid-template-columns:1fr 72px 50px 58px;gap:5px;align-items:center;padding:5px 12px;background:#f8f9fb;border-top:1px solid #e2e5ec;flex-shrink:0;}
+
+/* direita */
+.rcol{grid-row:span 2;display:flex;flex-direction:column;gap:8px;}
+.cg{display:grid;grid-template-columns:1fr 1fr;}
+.cm{padding:10px 12px;border-right:1px solid #f0f2f6;}
+.ct{font-size:30px;font-weight:300;line-height:1;}
+.cs{padding:10px 12px;}
+.cr{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid #f8f9fb;}
+.cr:last-child{border:none;}
+.crl{font-size:10px;color:#94a3b8;}.crv{font-size:10px;font-weight:500;font-family:'DM Mono',monospace;}
+.fc{display:grid;grid-template-columns:repeat(5,1fr);text-align:center;padding:6px 12px;border-top:1px solid #f0f2f6;}
+.cbr{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid #f8f9fb;}
+.cbr:last-child{border:none;}
+.cpair{font-size:11px;font-weight:600;font-family:'DM Mono',monospace;color:#475569;}
+.cval{font-size:15px;font-weight:500;font-family:'DM Mono',monospace;}
+.csub{font-size:9px;color:#94a3b8;text-align:right;}
+.tr{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #f8f9fb;font-size:11px;}
+.tr:last-child{border:none;}
+
+/* métricas */
+.mg{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:#f0f2f6;}
+.mc{background:#fff;padding:9px 12px;}
+.mv{font-size:18px;font-weight:500;font-family:'DM Mono',monospace;line-height:1.1;}
+.mu{font-size:10px;color:#94a3b8;font-weight:400;}
+.ml{font-size:9px;color:#94a3b8;text-transform:uppercase;letter-spacing:.4px;margin-top:2px;}
+.ms{font-size:9px;margin-top:2px;}
+.up{color:#22c55e;}.neu{color:#94a3b8;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo">
+    <div class="logo-icon"><svg viewBox="0 0 24 24"><path d="M3 18h18v2H3zm2-4h14l-2-6H7zm7-8a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM2 20h20v2H2z"/></svg></div>
+    <div><div class="logo-name">Porto de São Francisco do Sul</div><div class="logo-sub">Dashboard Operacional</div></div>
+  </div>
+  <div class="topbar-right">
+    <div class="live"><div class="dot"></div>Ao vivo</div>
+    <div><div class="clock" id="clock">--:--:--</div><div class="date" id="date">--</div></div>
+  </div>
+</div>
+
+<div class="ticker"><div class="ticker-track" id="ticker">Porto de São Francisco do Sul · Dashboard Operacional · Carregando dados...</div></div>
+
+<div class="grid">
+
+  <!-- NAVIOS OPERANDO -->
+  <div class="card">
+    <div class="card-h">
+      <div style="display:flex;align-items:center;gap:7px;">
+        <span class="card-title">Navios Operando</span>
+        <span class="src src-g">conferentes-sfs.com.br</span>
+        <span id="nUpd" style="font-size:9px;color:#94a3b8;"></span>
+      </div>
+      <div style="display:flex;align-items:center;gap:5px;">
+        <span class="badge b-blue" id="nCnt">—</span>
+        <button class="btn-r" onclick="loadNavios()">↻</button>
+      </div>
+    </div>
+    <div class="nhead">
+      <span class="stag">#</span><span class="stag">Berço</span><span class="stag">Navio / Operador</span>
+      <span class="stag">Carga</span><span class="stag">Progresso</span><span class="stag">Início</span>
+    </div>
+    <div class="card-body" id="nList"><div style="padding:14px 12px;color:#94a3b8;font-size:11px;">Carregando...</div></div>
+  </div>
+
+  <!-- LINEUP -->
+  <div class="card">
+    <div class="card-h">
+      <div style="display:flex;align-items:center;gap:7px;">
+        <span class="card-title">Programação de Navios</span>
+        <span class="src src-b">lineup.seatrade.com.br</span>
+        <span id="lUpd" style="font-size:9px;color:#94a3b8;"></span>
+      </div>
+      <div style="display:flex;align-items:center;gap:5px;">
+        <span class="badge b-amber" id="lCnt">—</span>
+        <button class="btn-r" onclick="loadLineup()">↻</button>
+      </div>
+    </div>
+    <div class="lhead">
+      <span class="stag">Status</span><span class="stag">Berço</span><span class="stag">Navio</span>
+      <span class="stag">Carga</span><span class="stag">ETA</span><span class="stag">ETB</span>
+    </div>
+    <div class="card-body" id="lList"><div style="padding:14px 12px;color:#94a3b8;font-size:11px;">Carregando...</div></div>
+  </div>
+
+  <!-- COLUNA DIREITA -->
+  <div class="rcol">
+    <div class="card">
+      <div class="card-h"><span class="card-title">Condições · SFS</span><span style="font-size:9px;color:#94a3b8;" id="climaUpd">—</span></div>
+      <div class="cg">
+        <div class="cm">
+          <div class="ct" id="wT">--°</div>
+          <div style="font-size:11px;color:#7b8494;margin-top:2px;" id="wD">—</div>
+          <div style="margin-top:7px;font-size:10px;color:#94a3b8;">Sensação <span id="wF" style="color:#1a1d23;font-weight:500;">--</span></div>
+        </div>
+        <div class="cs">
+          <div class="cr"><span class="crl">Vento</span><span class="crv" id="wW">--</span></div>
+          <div class="cr"><span class="crl">Umidade</span><span class="crv" id="wH">--</span></div>
+          <div class="cr"><span class="crl">Visib.</span><span class="crv" id="wV">--</span></div>
+          <div class="cr"><span class="crl">Pressão</span><span class="crv" id="wP">--</span></div>
+        </div>
+      </div>
+      <div class="fc" id="fc"></div>
+    </div>
+    <div class="card">
+      <div class="card-h"><span class="card-title">Câmbio</span><span style="font-size:9px;color:#94a3b8;" id="cambioUpd">—</span></div>
+      <div style="padding:6px 12px;" id="cambioList"><div style="font-size:11px;color:#94a3b8;">Carregando...</div></div>
+    </div>
+    <div class="card">
+      <div class="card-h"><span class="card-title">Maré · São Francisco do Sul</span></div>
+      <div style="padding:6px 12px;" id="tideList"></div>
+    </div>
+  </div>
+
+  <!-- STEELPORT -->
+  <div class="card">
+    <div class="card-h">
+      <div style="display:flex;align-items:center;gap:7px;">
+        <span class="card-title">4SIDES · SteelPort · Estoque por Navio</span>
+        <span class="src src-t">Supabase</span>
+        <span id="sUpd" style="font-size:9px;color:#94a3b8;"></span>
+      </div>
+      <div style="display:flex;align-items:center;gap:5px;">
+        <span class="badge b-teal" id="sCnt">—</span>
+        <button class="btn-r" onclick="loadSteel()">↻</button>
+      </div>
+    </div>
+    <div class="shead">
+      <span class="stag">Navio de Origem</span>
+      <span class="stag" style="text-align:right;">Peso Bruto</span>
+      <span class="stag" style="text-align:right;">Bobinas</span>
+      <span class="stag" style="text-align:center;">% Pátio</span>
+    </div>
+    <div class="card-body" id="sList"><div style="padding:14px 12px;color:#94a3b8;font-size:11px;">Conectando ao SteelPort...</div></div>
+    <div class="stot" id="sTot" style="display:none;">
+      <span style="font-size:10px;font-weight:600;color:#475569;">TOTAL EM ESTOQUE</span>
+      <span class="mono" style="font-size:11px;font-weight:600;text-align:right;" id="tP">—</span>
+      <span class="mono" style="font-size:11px;font-weight:600;text-align:right;" id="tQ">—</span>
+      <span></span>
+    </div>
+  </div>
+
+  <!-- RESUMO -->
+  <div class="card">
+    <div class="card-h"><span class="card-title">Resumo Operacional</span><span class="badge b-green">Dados reais</span></div>
+    <div class="mg">
+      <div class="mc"><div class="mv" id="mS">—<span class="mu"> t</span></div><div class="ml">Saldo a operar</div><div class="ms neu" id="mSs">—</div></div>
+      <div class="mc"><div class="mv" id="mR">—<span class="mu"> t</span></div><div class="ml">Já operado</div><div class="ms up" id="mRs">—</div></div>
+      <div class="mc"><div class="mv" id="mA">—<span class="mu"> t</span></div><div class="ml">Aço em pátio (SteelPort)</div><div class="ms neu" id="mAs">—</div></div>
+      <div class="mc"><div class="mv" id="mB">—</div><div class="ml">Bobinas em estoque</div><div class="ms neu" id="mBs">—</div></div>
+    </div>
+    <div style="padding:7px 12px;border-top:1px solid #f0f2f6;flex-shrink:0;">
+      <div class="card-title" style="margin-bottom:5px;">Navios no lineup por berço</div>
+      <div id="bCounts" style="display:flex;flex-wrap:wrap;gap:5px;"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const SB_URL='https://vvkhjadutrmjprsoooy.supabase.co';
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ2a2hqYWR1dHJtanByc29vb3kiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTc3Mzk1NjM4MCwiZXhwIjoyMDg5NTMyMzgwfQ.Pqd28EuifwCx41IC2XaWWqwC26c_IbbtzfvjyKsNFYw';
+const LINEUP_URL='https://lineup.seatrade.com.br/optos/lineup/pesquisa.aspx?WCI=RELLINEUPBASE_005_4&NUM_ADMINISTRA_PORTO=2&ORDER_BY=2&VISION=1';
+const CONF_URL='https://www.conferentes-sfs.com.br/Api/Api.php';
+
+function clock(){
+  const n=new Date(),p=v=>String(v).padStart(2,'0');
+  document.getElementById('clock').textContent=p(n.getHours())+':'+p(n.getMinutes())+':'+p(n.getSeconds());
+  const D=['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
+  const M=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+  document.getElementById('date').textContent=D[n.getDay()]+', '+n.getDate()+' de '+M[n.getMonth()]+' de '+n.getFullYear();
+}
+clock(); setInterval(clock,1000);
+
+const hm=()=>new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+
+function fmtT(v){
+  const n=parseFloat(String(v||0).replace(/\./g,'').replace(',','.'))||0;
+  if(n>=1e6)return(n/1e6).toFixed(2)+'M t';
+  if(n>=1e3)return(n/1e3).toFixed(1)+'k t';
+  return n.toFixed(0)+' t';
+}
+function fmtN(n){return Number(n).toLocaleString('pt-BR');}
+
+// ── NAVIOS OPERANDO ──────────────────────────────────────
+async function loadNavios(){
+  const btn=event?.target; if(btn){btn.innerHTML='<span class="sp">↻</span>';btn.disabled=true;}
+  try{
+    const r=await fetch(CONF_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({op:'navios_operando'})});
+    const d=await r.json();
+    const rows=Array.isArray(d)?d:(d.data||d.navios||[]);
+    renderNavios(rows.length?rows:fallbackN());
+    document.getElementById('nUpd').textContent='atualizado '+hm();
+  }catch(e){renderNavios(fallbackN());document.getElementById('nUpd').textContent='último dado';}
+  if(btn){btn.innerHTML='↻';btn.disabled=false;}
+  buildTicker();
+}
+
+function fallbackN(){return[
+  {berco:'102',navio:'DIAMOND SEA',operador:'LITORAL',carga:'GRANEL IMPORTAÇÃO',peso_previsto:38360000,peso_real:17434150,peso_saldo:20925850,inicio:'24/04/2026'},
+  {berco:'201',navio:'HANZE GENUA',operador:'MASTER',carga:'GRANEL IMPORTAÇÃO',peso_previsto:15000000,peso_real:12082200,peso_saldo:2917800,inicio:'24/04/2026'},
+  {berco:'302',navio:'JAMAICA BAY',operador:'TESC',carga:'BOBINAS DE AÇO VEGA',peso_previsto:36010861,peso_real:27954096,peso_saldo:8056765,inicio:'24/04/2026'},
+];}
+
+function renderNavios(navios){
+  document.getElementById('nCnt').textContent=navios.length+' navio'+(navios.length!==1?'s':'');
+  let tS=0,tR=0,tP=0;
+  document.getElementById('nList').innerHTML=navios.map((v,i)=>{
+    const p=parseFloat(v.peso_previsto||v.tons||0),r=parseFloat(v.peso_real||0),s=parseFloat(v.peso_saldo||0);
+    const pct=p>0?Math.round(r/p*100):0;
+    tS+=s;tR+=r;tP+=p;
+    const fc=pct>=80?'pg':pct>=50?'pb2':pct>=20?'pa':'pr';
+    return`<div class="nrow">
+      <span style="font-size:9px;font-weight:600;color:#94a3b8;" class="mono">${i+1}</span>
+      <div><span class="bt">Berço ${v.berco}</span></div>
+      <div><div style="font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${v.navio}</div><div style="font-size:9px;color:#94a3b8;">${v.operador||'—'}</div></div>
+      <div style="font-size:10px;color:#475569;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${v.carga||'—'}</div>
+      <div><div style="display:flex;justify-content:space-between;font-size:9px;color:#94a3b8;"><span>${pct}%</span><span>${fmtT(r)}</span></div><div class="pb"><div class="pf ${fc}" style="width:${pct}%"></div></div></div>
+      <div style="font-size:9px;color:#94a3b8;" class="mono">${(v.inicio||'').substring(0,10)}</div>
+    </div>`;
+  }).join('');
+  const pm=tP>0?Math.round(tR/tP*100):0;
+  document.getElementById('mS').innerHTML=fmtT(tS)+'<span class="mu"></span>';
+  document.getElementById('mSs').textContent=fmtN(Math.round(tS/1000))+'k t restantes';
+  document.getElementById('mR').innerHTML=fmtT(tR)+'<span class="mu"></span>';
+  document.getElementById('mRs').textContent=pm+'% concluído';
+}
+
+// ── LINEUP — via Claude API proxy (resolve CORS do Seatrade) ─
+async function loadLineup(){
+  const btn = event?.target; if(btn){btn.innerHTML='<span class="sp">↻</span>';btn.disabled=true;}
+  try{
+    // Usa Claude como proxy para buscar o HTML do lineup sem CORS
+    const prompt = `Acesse esta URL e retorne SOMENTE um JSON válido, sem markdown, sem explicação:
+URL: ${LINEUP_URL}
+
+Extraia a tabela de navios e retorne no formato:
+{"navios": [{"berco":"101","status":"Berthed","vessel":"NOME","eta":"dd/mm/yyyy","etb":"dd/mm/yyyy","carga":"TIPO CARGA"}]}
+
+Campos obrigatórios: berco (número do berço), status (Berthed/Awaiting/Expected), vessel (nome do navio), eta (data ETA sem hora), etb (data ETB sem hora), carga (tipo de carga sem números, ex: LOAD SOYA, DISCH UREIA).
+Retorne TODOS os navios da tabela. Apenas JSON.`;
+
+    const r = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 4000,
+        system: 'Você é um assistente que retorna APENAS JSON válido, sem markdown.',
+        tools: [{type: 'web_search_20250305', name: 'web_search'}],
+        messages: [{role: 'user', content: prompt}]
+      })
+    });
+    const d = await r.json();
+    // Extrai o texto da resposta (pode vir após tool_use)
+    const txt = (d.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('');
+    const clean = txt.replace(/```json|```/g,'').trim();
+    const parsed = JSON.parse(clean);
+    const navios = parsed.navios || parsed;
+    if(!Array.isArray(navios)||!navios.length) throw new Error('sem dados');
+    renderLineup(navios);
+    document.getElementById('lUpd').textContent = 'atualizado '+hm();
+  }catch(e){
+    document.getElementById('lList').innerHTML = `<div style="padding:12px;font-size:11px;color:#991b1b;">Erro ao carregar lineup: ${e.message}</div>`;
+    document.getElementById('lUpd').textContent = 'erro';
+  }
+  if(btn){btn.innerHTML='↻';btn.disabled=false;}
+  buildTicker();
+}
+
+function parseLineup(html){
+  const doc=new DOMParser().parseFromString(html,'text/html');
+  const res=[];let berco='';
+  doc.querySelectorAll('tr').forEach(tr=>{
+    const m=tr.textContent.match(/Berth\s+(\d+)/);
+    if(m){berco=m[1];return;}
+    const tds=[...tr.querySelectorAll('td')];
+    if(tds.length<8) return;
+    const v=tds.map(td=>td.textContent.trim());
+    if(['Berthed','Awaiting','Expected'].includes(v[0])){
+      // Colunas confirmadas: 0=status,1=vessel,2=loa,3=portStay,4=eta,5=awb,6=etb,7=etc,8=ets,9=operation
+      const carga=(v[9]||'').replace(/[\d\.,]+/g,'').replace(/\s+/g,' ').trim();
+      res.push({
+        berco,
+        status: v[0],
+        vessel: v[1],
+        eta: (v[4]||'').replace(' AM','').replace(' PM','').substring(0,16),
+        etb: (v[6]||'').replace(' AM','').replace(' PM','').substring(0,10),
+        carga
+      });
+    }
+  });
+  return res;
+}
+
+function renderLineup(navios){
+  document.getElementById('lCnt').textContent=navios.length+' navios';
+  const sc={Berthed:'stB',Awaiting:'stA',Expected:'stE'};
+  const stLabel={Berthed:'Atracado',Awaiting:'Aguardando',Expected:'Esperado'};
+  document.getElementById('lList').innerHTML=navios.map(n=>`
+    <div class="lrow">
+      <span class="st ${sc[n.status]||'stE'}">${stLabel[n.status]||n.status}</span>
+      <div><span class="bs">${n.berco}</span></div>
+      <div style="font-size:11px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${n.vessel}">${n.vessel}</div>
+      <div style="font-size:10px;color:#475569;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${n.carga}">${n.carga||'—'}</div>
+      <div style="font-size:10px;color:#94a3b8;" class="mono">${n.eta||'—'}</div>
+      <div style="font-size:10px;color:#1e40af;font-weight:500;" class="mono">${n.etb||'—'}</div>
+    </div>`).join('');
+  const counts={};
+  navios.forEach(n=>{counts[n.berco]=(counts[n.berco]||0)+1;});
+  document.getElementById('bCounts').innerHTML=Object.entries(counts).sort((a,b)=>+a[0]-+b[0]).map(([b,c])=>
+    `<span style="font-size:10px;background:#eff6ff;color:#1e40af;border-radius:4px;padding:2px 7px;font-weight:600;">Berço ${b}: <span style="font-weight:400;">${c}</span></span>`
+  ).join('');
+}
+
+// ── STEELPORT — Supabase ─────────────────────────────────
+async function loadSteel(){
+  const btn=event?.target; if(btn){btn.innerHTML='<span class="sp">↻</span>';btn.disabled=true;}
+  try{
+    const r=await fetch(`${SB_URL}/rest/v1/bobinas?select=navio_origem,peso_bruto,status&status=eq.estoque&order=navio_origem`,{
+      headers:{'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`,'Accept':'application/json'}
+    });
+    if(!r.ok){const t=await r.text();throw new Error('HTTP '+r.status+': '+t.substring(0,80));}
+    const rows=await r.json();
+    if(!Array.isArray(rows)) throw new Error('resposta inválida');
+    renderSteel(rows);
+    document.getElementById('sUpd').textContent='atualizado '+hm();
+  }catch(e){
+    document.getElementById('sList').innerHTML=`<div style="padding:12px;font-size:11px;line-height:1.8;color:#7b8494;">
+      <b style="color:#991b1b;">Erro: ${e.message}</b><br>
+      Para corrigir o CORS abra o Supabase Dashboard:<br>
+      Settings → API → Allowed Origins → adicione <code style="background:#f1f5f9;padding:0 3px;border-radius:2px;">*</code>
+    </div>`;
+    document.getElementById('sUpd').textContent='erro CORS';
+  }
+  if(btn){btn.innerHTML='↻';btn.disabled=false;}
+}
+
+function renderSteel(rows){
+  const map={};
+  rows.forEach(r=>{
+    const n=(r.navio_origem||'SEM NAVIO').toUpperCase().trim();
+    const p=parseFloat(String(r.peso_bruto||0).replace(',','.'))||0;
+    if(!map[n])map[n]={navio:n,peso:0,qtd:0};
+    map[n].peso+=p; map[n].qtd++;
+  });
+  const gs=Object.values(map).sort((a,b)=>b.peso-a.peso);
+  const tP=gs.reduce((s,g)=>s+g.peso,0);
+  const tQ=gs.reduce((s,g)=>s+g.qtd,0);
+  document.getElementById('sCnt').textContent=fmtT(tP);
+  document.getElementById('sTot').style.display='grid';
+  document.getElementById('tP').textContent=fmtT(tP);
+  document.getElementById('tQ').textContent=fmtN(tQ);
+  document.getElementById('mA').innerHTML=fmtT(tP)+'<span class="mu"></span>';
+  document.getElementById('mAs').textContent=fmtN(gs.length)+' navios de origem';
+  document.getElementById('mB').innerHTML=fmtN(tQ);
+  document.getElementById('mBs').textContent='bobinas em pátio';
+  document.getElementById('sList').innerHTML=gs.map(g=>{
+    const pct=tP>0?Math.round(g.peso/tP*100):0;
+    return`<div class="srow">
+      <div><span class="nt" title="${g.navio}">${g.navio}</span></div>
+      <div style="font-size:11px;font-weight:500;text-align:right;" class="mono">${fmtT(g.peso)}</div>
+      <div style="font-size:11px;text-align:right;" class="mono">${fmtN(g.qtd)}</div>
+      <div style="text-align:center;"><div style="height:4px;background:#f1f5f9;border-radius:2px;overflow:hidden;"><div style="height:100%;background:#0d9488;border-radius:2px;width:${pct}%"></div></div><div style="font-size:9px;color:#94a3b8;margin-top:1px;">${pct}%</div></div>
+    </div>`;
+  }).join('');
+}
+
+// ── CLIMA ────────────────────────────────────────────────
+async function loadClima(){
+  try{
+    const r=await fetch('https://api.open-meteo.com/v1/forecast?latitude=-26.2293&longitude=-48.6411&current=temperature_2m,relative_humidity_2m,wind_speed_10m,surface_pressure,apparent_temperature,weather_code,visibility&daily=temperature_2m_max,temperature_2m_min,weather_code&timezone=America%2FSao_Paulo&forecast_days=5');
+    const d=await r.json(),c=d.current;
+    const desc={0:'Céu limpo',1:'Limpo',2:'Parc. nublado',3:'Nublado',45:'Neblina',51:'Chuvisco',61:'Chuva fraca',63:'Chuva',80:'Pancadas',95:'Tempestade'};
+    document.getElementById('wT').textContent=Math.round(c.temperature_2m)+'°C';
+    document.getElementById('wD').textContent=desc[c.weather_code]||'Variável';
+    document.getElementById('wF').textContent=Math.round(c.apparent_temperature)+'°C';
+    document.getElementById('wW').textContent=Math.round(c.wind_speed_10m)+' km/h';
+    document.getElementById('wH').textContent=c.relative_humidity_2m+'%';
+    document.getElementById('wV').textContent=c.visibility?(c.visibility/1000).toFixed(0)+' km':'—';
+    document.getElementById('wP').textContent=Math.round(c.surface_pressure)+' hPa';
+    document.getElementById('climaUpd').textContent=hm();
+    const ic={0:'☀️',1:'🌤',2:'⛅',3:'☁️',45:'🌫',51:'🌧',61:'🌧',63:'🌧',80:'🌦',95:'⛈'};
+    const dn=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+    document.getElementById('fc').innerHTML=d.daily.temperature_2m_max.map((mx,i)=>{
+      const dt=new Date(d.daily.time[i]+'T12:00:00');
+      return`<div><div style="font-size:9px;color:#94a3b8;">${i===0?'Hoje':dn[dt.getDay()]}</div><div style="font-size:13px;">${ic[d.daily.weather_code[i]]||'🌡'}</div><div style="font-size:10px;font-weight:500;">${Math.round(mx)}°</div><div style="font-size:9px;color:#94a3b8;">${Math.round(d.daily.temperature_2m_min[i])}°</div></div>`;
+    }).join('');
+  }catch(e){document.getElementById('wT').textContent='--°C';}
+}
+
+// ── CÂMBIO ───────────────────────────────────────────────
+async function loadCambio(){
+  try{
+    const[r1,r2]=await Promise.all([fetch('https://api.frankfurter.app/latest?from=USD&to=BRL'),fetch('https://api.frankfurter.app/latest?from=EUR&to=BRL')]);
+    const[d1,d2]=await Promise.all([r1.json(),r2.json()]);
+    document.getElementById('cambioList').innerHTML=`
+      <div class="cbr"><span class="cpair">USD/BRL</span><div><div class="cval">R$ ${d1.rates.BRL.toFixed(3)}</div><div class="csub">Dólar comercial</div></div></div>
+      <div class="cbr"><span class="cpair">EUR/BRL</span><div><div class="cval">R$ ${d2.rates.BRL.toFixed(3)}</div><div class="csub">Euro comercial</div></div></div>
+      <div class="cbr"><span style="font-size:10px;color:#94a3b8;">Frete SFS→US Gulf</span><div><div style="font-size:13px;font-weight:500;" class="mono">USD 14.80/m³</div><div class="csub">Referência</div></div></div>`;
+    document.getElementById('cambioUpd').textContent=hm();
+  }catch(e){document.getElementById('cambioList').innerHTML='<div style="font-size:11px;color:#94a3b8;padding:5px 0;">Indisponível</div>';}
+}
+
+// ── MARÉ ─────────────────────────────────────────────────
+function loadMare(){
+  const h=new Date().getHours();
+  const tides=[{t:'02:30',v:'0.45m',tp:'Baixa-mar'},{t:'08:50',v:'1.38m',tp:'Preamar'},{t:'15:10',v:'0.52m',tp:'Baixa-mar'},{t:'21:30',v:'1.41m',tp:'Preamar'}];
+  document.getElementById('tideList').innerHTML=tides.map(td=>{
+    const p=parseInt(td.t)<h;
+    return`<div class="tr" style="${p?'opacity:.4':''}"><span>${p?'✓ ':''}<b>${td.tp}</b></span><span class="mono">${td.t} · ${td.v}</span></div>`;
+  }).join('');
+}
+
+// ── TICKER ───────────────────────────────────────────────
+function buildTicker(){
+  const items=['🚢 Porto de São Francisco do Sul · Dashboard Operacional'];
+  document.querySelectorAll('.nrow').forEach(r=>{
+    const b=r.querySelector('.bt')?.textContent||'';
+    const n=r.querySelector('[style*="font-weight:500"]')?.textContent||'';
+    if(n)items.push(`🚢 ${b} · ${n}`);
+  });
+  document.querySelectorAll('.lrow').forEach(r=>{
+    const v=r.querySelectorAll('div')[1]?.textContent?.trim()||'';
+    const b=r.querySelector('.bs')?.textContent||'';
+    const e=r.querySelectorAll('div')[3]?.textContent?.trim()||'';
+    if(v&&e)items.push(`⚓ Berço ${b} · ${v} · ETB ${e}`);
+  });
+  const txt=items.join('<span class="ticker-sep">|</span>');
+  document.getElementById('ticker').innerHTML=txt+'<span class="ticker-sep">|</span>'+txt;
+}
+
+// ── INIT ─────────────────────────────────────────────────
+loadMare(); loadClima(); loadCambio();
+loadNavios(); loadLineup(); loadSteel();
+
+setInterval(loadClima,    10*60*1000);
+setInterval(loadCambio,    5*60*1000);
+setInterval(loadMare,         60*1000);
+setInterval(loadNavios,    5*60*1000);
+setInterval(loadLineup,   10*60*1000);
+setInterval(loadSteel,     5*60*1000);
+</script>
+</body>
+</html>
