@@ -61,7 +61,26 @@ body{font-family:'DM Sans',sans-serif;background:#F0F2F5;color:#1a1d23;font-size
 .pg{background:#22c55e;}.pb2{background:#3b82f6;}.pa{background:#f59e0b;}.pr{background:#ef4444;}
 
 /* lineup */
-.lrow,.lhead{display:grid;grid-template-columns:60px 50px 1fr 80px 86px 86px 72px;gap:5px;align-items:center;padding:5px 12px;}
+.lrow,.lhead{display:grid;gap:0;align-items:center;}
+.lrow{border-bottom:1px solid #f8f9fb;min-width:0;}
+.lrow.seatrade-row{background:#1e3a8a !important;border-left:4px solid #1d4ed8;}
+.lrow.seatrade-row .lc{color:#fff !important;font-weight:700 !important;}
+.lrow.seatrade-row .st{background:rgba(255,255,255,0.2) !important;color:#fff !important;}
+.lrow.seatrade-row .bs{background:rgba(255,255,255,0.15) !important;color:#fff !important;}
+.lrow:hover:not(.seatrade-row){background:#f8f9fb;}
+.lhead{background:#fafbfc;border-bottom:2px solid #e2e5ec;position:sticky;top:0;z-index:10;}
+/* Célula de coluna */
+.lc{padding:5px 6px;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;}
+.lhead .lc{font-size:9px;font-weight:600;letter-spacing:.7px;color:#94a3b8;text-transform:uppercase;cursor:pointer;user-select:none;position:relative;display:flex;align-items:center;gap:3px;}
+.lhead .lc:hover{color:#1e40af;}
+.lhead .lc.asc::after{content:'▲';font-size:8px;}
+.lhead .lc.desc::after{content:'▼';font-size:8px;}
+/* Handle de resize */
+.col-resize-handle{position:absolute;right:0;top:0;bottom:0;width:5px;cursor:col-resize;background:transparent;z-index:20;}
+.col-resize-handle:hover,.col-resize-handle.dragging{background:#3b82f6;}
+/* Drag reorder */
+.lhead .lc.drag-over{border-left:2px solid #3b82f6;}
+.lhead .lc[draggable]{cursor:grab;}
 .lhead{background:#fafbfc;border-bottom:1px solid #f0f2f6;position:sticky;top:0;}
 .lrow{border-bottom:1px solid #f8f9fb;}.lrow:last-child{border:none;}.lrow:hover{background:#fafbfc;}
 .st{font-size:9px;font-weight:600;padding:2px 5px;border-radius:3px;text-align:center;}
@@ -146,7 +165,7 @@ body{font-family:'DM Sans',sans-serif;background:#F0F2F5;color:#1a1d23;font-size
   </div>
 
   <!-- LINEUP -->
-  <div class="card">
+  <div class="card" style="grid-row:span 2;">
     <div class="card-h">
       <div style="display:flex;align-items:center;gap:7px;">
         <span class="card-title">Programação de Navios</span>
@@ -158,15 +177,7 @@ body{font-family:'DM Sans',sans-serif;background:#F0F2F5;color:#1a1d23;font-size
         <button class="btn-r" onclick="loadLineup()">↻</button>
       </div>
     </div>
-    <div class="lhead" id="lineupHead">
-      <span class="stag sort-hd" onclick="sortLineup('status')" data-col="status">Status ↕</span>
-      <span class="stag sort-hd" onclick="sortLineup('berco')" data-col="berco">Berço ↕</span>
-      <span class="stag sort-hd" onclick="sortLineup('vessel')" data-col="vessel">Navio ↕</span>
-      <span class="stag sort-hd" onclick="sortLineup('carga')" data-col="carga">Carga ↕</span>
-      <span class="stag sort-hd" onclick="sortLineup('eta')" data-col="eta">ETA ↕</span>
-      <span class="stag sort-hd" onclick="sortLineup('etb')" data-col="etb">ETB ↕</span>
-      <span class="stag sort-hd" onclick="sortLineup('balance')" data-col="balance" style="text-align:right;">Balance ↕</span>
-    </div>
+    <div id="lineupHead"></div>
     <div class="card-body" id="lList"><div style="padding:14px 12px;color:#94a3b8;font-size:11px;">Carregando...</div></div>
   </div>
 
@@ -227,19 +238,13 @@ body{font-family:'DM Sans',sans-serif;background:#F0F2F5;color:#1a1d23;font-size
     </div>
   </div>
 
-  <!-- RESUMO -->
-  <div class="card">
-    <div class="card-h"><span class="card-title">Resumo Operacional</span><span class="badge b-green">Dados reais</span></div>
-    <div class="mg">
-      <div class="mc"><div class="mv" id="mS">—<span class="mu"> t</span></div><div class="ml">Saldo a operar</div><div class="ms neu" id="mSs">—</div></div>
-      <div class="mc"><div class="mv" id="mR">—<span class="mu"> t</span></div><div class="ml">Já operado</div><div class="ms up" id="mRs">—</div></div>
-      <div class="mc"><div class="mv" id="mA">—<span class="mu"> t</span></div><div class="ml">Aço em pátio (SteelPort)</div><div class="ms neu" id="mAs">—</div></div>
-      <div class="mc"><div class="mv" id="mB">—</div><div class="ml">Bobinas em estoque</div><div class="ms neu" id="mBs">—</div></div>
-    </div>
-    <div style="padding:7px 12px;border-top:1px solid #f0f2f6;flex-shrink:0;">
-      <div class="card-title" style="margin-bottom:5px;">Navios no lineup por berço</div>
-      <div id="bCounts" style="display:flex;flex-wrap:wrap;gap:5px;"></div>
-    </div>
+  <!-- IDs hidden para compatibilidade com JS existente -->
+  <div style="display:none;" id="mS-wrap">
+    <span id="mS"></span><span id="mSs"></span>
+    <span id="mR"></span><span id="mRs"></span>
+    <span id="mA"></span><span id="mAs"></span>
+    <span id="mB"></span><span id="mBs"></span>
+    <span id="bCounts"></span>
   </div>
 
 </div>
@@ -432,58 +437,78 @@ function renderNaviosRows(navios){
   }).join('');
 }
 
-// ── LINEUP — lineup.seatrade.com.br (via proxy CORS) ─────
-// Proxies disponíveis para o lineup — tenta em sequência
-// corsproxy.io confirmado funcionando do GitHub Pages (200, 127k, hasBerth=true)
-const PROXIES = [
-  url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
-  url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
-  url => url,
-];
+// ── LINEUP — lineup.seatrade.com.br ──────────────────────
+// O Seatrade bloqueia proxies públicos com timeout.
+// Solução permanente: Cloudflare Worker gratuito.
+// 1. Acesse workers.cloudflare.com (conta grátis)
+// 2. Crie um worker novo, cole o código abaixo e salve:
+//    export default { async fetch(req) {
+//      const r = await fetch('https://lineup.seatrade.com.br/optos/lineup/pesquisa.aspx?WCI=RELLINEUPBASE_005_4&NUM_ADMINISTRA_PORTO=2&ORDER_BY=2&VISION=1',
+//        {headers:{'User-Agent':'Mozilla/5.0','Accept':'text/html'}});
+//      return new Response(await r.text(), {headers:{'Content-Type':'text/html','Access-Control-Allow-Origin':'*'}});
+//    }};
+// 3. Cole a URL do worker abaixo:
+const WORKER_URL = 'https://dashboard.luancarloo.workers.dev/';
 
-async function fetchWithTimeout(url, opts={}, timeoutMs=8000){
+let _lineupRetry = null;
+
+async function ftch(url, ms=15000){
   const ctrl = new AbortController();
-  const timer = setTimeout(()=>ctrl.abort(), timeoutMs);
-  try{
-    const r = await fetch(url, {...opts, signal: ctrl.signal});
-    clearTimeout(timer);
-    return r;
-  }catch(e){ clearTimeout(timer); throw e; }
+  const t = setTimeout(()=>ctrl.abort(), ms);
+  try{ const r=await fetch(url,{signal:ctrl.signal}); clearTimeout(t); return r; }
+  catch(e){ clearTimeout(t); throw e; }
 }
 
 async function loadLineup(){
   const btn=event?.target; if(btn){btn.innerHTML='<span class="sp">↻</span>';btn.disabled=true;}
-  let ok=false;
+  if(_lineupRetry){ clearTimeout(_lineupRetry); _lineupRetry=null; }
 
-  for(let i=0; i<PROXIES.length && !ok; i++){
+  // Lista de fontes em ordem de prioridade
+  const fontes = [];
+  if(WORKER_URL) fontes.push({url: WORKER_URL, nome: 'worker'});
+  fontes.push(
+    {url: `https://corsproxy.io/?${encodeURIComponent(LINEUP_URL)}`, nome: 'corsproxy'},
+    {url: `https://api.allorigins.win/raw?url=${encodeURIComponent(LINEUP_URL)}`, nome: 'allorigins'},
+    {url: `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(LINEUP_URL)}`, nome: 'codetabs'},
+  );
+
+  let html = null, fonte = '';
+  for(const f of fontes){
     try{
-      const url = PROXIES[i](LINEUP_URL);
-      const r = await fetchWithTimeout(url, {headers:{'Accept':'text/html'}}, 9000);
+      const r = await ftch(f.url, 15000);
       if(!r.ok) continue;
-      const html = await r.text();
-      if(!html || html.length < 10000 || !html.includes('Berth')) continue;
-      const navios = parseLineup(html);
-      if(!navios.length) continue;
+      const txt = await r.text();
+      if(txt && txt.includes('Berth')){ html = txt; fonte = f.nome; break; }
+    }catch(e){}
+  }
+
+  if(html){
+    const navios = parseLineup(html);
+    if(navios.length){
       renderLineup(navios);
-      document.getElementById('lUpd').textContent = (i===0?'':'proxy · ')+'atualizado '+hm();
-      ok = true;
-    }catch(e){ /* tenta próximo proxy */ }
-  }
-
-  // Se todos falharam, tenta novamente após 15s sem mostrar erro imediatamente
-  if(!ok){
-    // Mantém último dado exibido e mostra aviso suave
-    const current = document.getElementById('lList').innerHTML;
-    const hasData = current.includes('lrow');
-    if(!hasData){
-      document.getElementById('lList').innerHTML='<div style="padding:12px;font-size:11px;color:#94a3b8;">Carregando lineup...</div>';
-    } else {
-      document.getElementById('lUpd').textContent='falha ao atualizar — retentando em 30s';
+      document.getElementById('lUpd').textContent = 'atualizado '+hm();
+      if(btn){btn.innerHTML='↻';btn.disabled=false;}
+      buildTicker();
+      return;
     }
-    setTimeout(loadLineup, 15000);
   }
 
+  // Falhou — mantém dados se houver, agenda retry
   if(btn){btn.innerHTML='↻';btn.disabled=false;}
+  const temDados = !!document.getElementById('lList').querySelector('.lrow');
+  if(temDados){
+    document.getElementById('lUpd').textContent='⚠ retentando em 60s';
+  } else {
+    document.getElementById('lList').innerHTML=`<div style="padding:14px 12px;">
+      <div style="font-size:11px;font-weight:600;color:#92400e;margin-bottom:6px;">⚠️ Lineup temporariamente indisponível</div>
+      <div style="font-size:10px;color:#94a3b8;line-height:1.8;">
+        Os proxies públicos estão sendo bloqueados pelo Seatrade.<br>
+        <b>Solução definitiva:</b> crie um Cloudflare Worker gratuito<br>
+        (veja instruções nos comentários do código) e configure WORKER_URL.
+      </div>
+    </div>`;
+  }
+  _lineupRetry = setTimeout(loadLineup, 60000);
   buildTicker();
 }
 
@@ -505,75 +530,187 @@ function parseLineup(html){
         eta: (v[4]||'').replace(' AM','').replace(' PM','').substring(0,10),
         etb: (v[6]||'').replace(' AM','').replace(' PM','').substring(0,10),
         carga,
-        balance: v[12]||''
+        balance: v[12]||'',
+        agent: (v[13]||'').trim()
       });
     }
   });
   return res;
 }
 
-let _lineupData=[];
-let _lineupSort={col:'etb',dir:'asc'};
+// ════════════════════════════════════════════════════════
+// LINEUP — Sistema de colunas dinâmicas
+// ════════════════════════════════════════════════════════
+let _lineupData = [];
+let _lineupSort = {col:'etb', dir:'asc'};
 
+// Definição das colunas — ordem e largura iniciais
+let _cols = [
+  {key:'status',  label:'Status',  w:68,  flex:false},
+  {key:'berco',   label:'Berço',   w:52,  flex:false},
+  {key:'vessel',  label:'Navio',   w:180, flex:true},
+  {key:'carga',   label:'Carga',   w:120, flex:true},
+  {key:'eta',     label:'ETA',     w:88,  flex:false},
+  {key:'etb',     label:'ETB',     w:88,  flex:false},
+  {key:'balance', label:'Balance', w:80,  flex:false},
+  {key:'agent',   label:'Agência', w:90,  flex:false},
+];
+
+function applyColWidths(){
+  const tpl = _cols.map(c => c.flex ? `${c.w}px` : `${c.w}px`).join(' ');
+  document.querySelectorAll('.lrow,.lhead').forEach(el => {
+    el.style.gridTemplateColumns = tpl;
+  });
+}
+
+// ── Render cabeçalho dinâmico ────────────────────────────
+function renderLineupHead(){
+  const head = document.getElementById('lineupHead');
+  head.className = 'lhead';
+  head.style.display = 'grid';
+  head.innerHTML = _cols.map((col, idx) => {
+    const sortCls = _lineupSort.col===col.key ? _lineupSort.dir : '';
+    return `<div class="lc ${sortCls}" data-col="${col.key}" data-idx="${idx}"
+              draggable="true"
+              onclick="sortLineup('${col.key}')"
+              ondragstart="colDragStart(event,${idx})"
+              ondragover="colDragOver(event,${idx})"
+              ondrop="colDrop(event,${idx})"
+              ondragleave="this.classList.remove('drag-over')">
+      ${col.label}
+      <div class="col-resize-handle"
+        onmousedown="colResizeStart(event,${idx})"
+        onclick="event.stopPropagation()"></div>
+    </div>`;
+  }).join('');
+  applyColWidths();
+}
+
+// ── Ordenação ────────────────────────────────────────────
 function sortLineup(col){
   if(_lineupSort.col===col){_lineupSort.dir=_lineupSort.dir==='asc'?'desc':'asc';}
   else{_lineupSort.col=col;_lineupSort.dir='asc';}
-  // Atualiza ícones dos cabeçalhos
-  document.querySelectorAll('.sort-hd').forEach(el=>{
-    el.classList.remove('asc','desc');
-    if(el.dataset.col===col) el.classList.add(_lineupSort.dir);
-  });
-  const sorted=[..._lineupData].sort((a,b)=>{
+  renderLineupHead();
+  const sorted = sortedLineupData(_lineupData);
+  renderLineupRows(sorted);
+}
+
+function sortedLineupData(navios){
+  const berthed = navios.filter(n=>n.status==='Berthed');
+  const rest    = navios.filter(n=>n.status!=='Berthed');
+  const col = _lineupSort.col;
+  const sorter = (a,b) => {
     let va=a[col]||'', vb=b[col]||'';
-    // Datas dd/mm/yyyy → comparação correta
     if(/^\d{2}\/\d{2}\/\d{4}/.test(va)){
-      const toD=s=>s.split('/').reverse().join('');
-      va=toD(va); vb=toD(vb);
+      const d=s=>s.split('/').reverse().join('');
+      va=d(va);vb=d(vb);
     }
-    // Números
     const na=parseFloat(va.replace(/[^\d,]/g,'').replace(',','.'));
     const nb=parseFloat(vb.replace(/[^\d,]/g,'').replace(',','.'));
     if(!isNaN(na)&&!isNaN(nb)) return _lineupSort.dir==='asc'?na-nb:nb-na;
-    return _lineupSort.dir==='asc'?va.localeCompare(vb):vb.localeCompare(va);
-  });
-  renderLineupRows(sorted);
+    return _lineupSort.dir==='asc'?va.localeCompare(vb,'pt-BR'):vb.localeCompare(va,'pt-BR');
+  };
+  return [...berthed.sort(sorter), ...rest.sort(sorter)];
 }
 
+// ── renderLineup (entrada principal) ────────────────────
 function renderLineup(navios){
-  _lineupData=navios;
-  // Marca coluna ETB como padrão
-  document.querySelectorAll('.sort-hd').forEach(el=>el.classList.remove('asc','desc'));
-  const defCol=document.querySelector('.sort-hd[data-col="etb"]');
-  if(defCol) defCol.classList.add('asc');  document.getElementById('lCnt').textContent=navios.length+' navios';
-  const sc={Berthed:'stB',Awaiting:'stA',Expected:'stE'};
-  const stLbl={Berthed:'Atracado',Awaiting:'Aguardando',Expected:'Esperado'};
-  // Contagem por berço
-  const counts={};
-  navios.forEach(n=>{counts[n.berco]=(counts[n.berco]||0)+1;});
-  document.getElementById('bCounts').innerHTML=Object.entries(counts).sort((a,b)=>+a[0]-+b[0]).map(([b,q])=>
-    `<span style="font-size:10px;background:#eff6ff;color:#1e40af;border-radius:4px;padding:2px 7px;font-weight:600;">Berço ${b}: <span style="font-weight:400;">${q}</span></span>`
-  ).join('');
-  // Ordena por ETB por padrão e renderiza
-  const sorted=[...navios].sort((a,b)=>{
-    const toD=s=>(s||'9999/99/99').split('/').reverse().join('');
-    return toD(a.etb).localeCompare(toD(b.etb));
-  });
-  renderLineupRows(sorted);
+  _lineupData = navios;
+  document.getElementById('lCnt').textContent = navios.length+' navios';
+  renderLineupHead();
+  renderLineupRows(sortedLineupData(navios));
 }
 
+// ── renderLineupRows ─────────────────────────────────────
 function renderLineupRows(navios){
-  const sc={Berthed:'stB',Awaiting:'stA',Expected:'stE'};
-  const stLbl={Berthed:'Atracado',Awaiting:'Aguardando',Expected:'Esperado'};  document.getElementById('lList').innerHTML=navios.map(n=>`
-    <div class="lrow">
-      <span class="st ${sc[n.status]||'stE'}">${stLbl[n.status]||n.status}</span>
-      <div><span class="bs">${n.berco}</span></div>
-      <div style="font-size:11px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${n.vessel}">${n.vessel}</div>
-      <div style="font-size:10px;color:#475569;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${n.carga}">${n.carga||'—'}</div>
-      <div style="font-size:10px;color:#94a3b8;" class="mono">${n.eta||'—'}</div>
-      <div style="font-size:10px;color:#1e40af;font-weight:500;" class="mono">${n.etb||'—'}</div>
-      <div style="font-size:10px;color:#475569;text-align:right;" class="mono">${n.balance||'—'}</div>
-    </div>`).join('');
+  const sc  = {Berthed:'stB',Awaiting:'stA',Expected:'stE'};
+  const stL = {Berthed:'Atracado',Awaiting:'Aguardando',Expected:'Esperado'};
+
+  const cellVal = (n, key) => {
+    switch(key){
+      case 'status':
+        return `<span class="st ${sc[n.status]||'stE'}">${stL[n.status]||n.status}</span>`;
+      case 'berco':
+        return `<span class="bs">${n.berco}</span>`;
+      case 'vessel':
+        return `<span title="${n.vessel}">${n.vessel}</span>`;
+      case 'carga':
+        return `<span title="${n.carga}">${n.carga||'—'}</span>`;
+      case 'eta':
+        return n.eta||'—';
+      case 'etb':
+        return `<b>${n.etb||'—'}</b>`;
+      case 'balance':
+        return n.balance||'—';
+      case 'agent':
+        return n.agent||'—';
+      default:
+        return n[key]||'—';
+    }
+  };
+
+  document.getElementById('lList').innerHTML = navios.map(n => {
+    const isBerthed  = n.status === 'Berthed';
+    const isSeatrade = (n.agent||'').toUpperCase().includes('SEATRADE');
+    const rowCls = isSeatrade ? 'lrow seatrade-row' : 'lrow';
+    const cells = _cols.map(col =>
+      `<div class="lc" data-key="${col.key}">${cellVal(n, col.key)}</div>`
+    ).join('');
+    return `<div class="${rowCls}">${cells}</div>`;
+  }).join('');
+
+  applyColWidths();
 }
+
+// ── Drag-reorder colunas ─────────────────────────────────
+let _dragSrcIdx = null;
+function colDragStart(e, idx){
+  _dragSrcIdx = idx;
+  e.dataTransfer.effectAllowed = 'move';
+}
+function colDragOver(e, idx){
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  document.querySelectorAll('#lineupHead .lc').forEach((el,i)=>{
+    el.classList.toggle('drag-over', i===idx && i!==_dragSrcIdx);
+  });
+}
+function colDrop(e, idx){
+  e.preventDefault();
+  document.querySelectorAll('#lineupHead .lc').forEach(el=>el.classList.remove('drag-over'));
+  if(_dragSrcIdx===null || _dragSrcIdx===idx) return;
+  const moved = _cols.splice(_dragSrcIdx, 1)[0];
+  _cols.splice(idx, 0, moved);
+  _dragSrcIdx = null;
+  renderLineupHead();
+  renderLineupRows(sortedLineupData(_lineupData));
+}
+
+// ── Resize colunas ───────────────────────────────────────
+let _resizeState = null;
+function colResizeStart(e, idx){
+  e.preventDefault();
+  e.stopPropagation();
+  _resizeState = {idx, startX: e.clientX, startW: _cols[idx].w};
+  const handle = e.target;
+  handle.classList.add('dragging');
+
+  const onMove = ev => {
+    const delta = ev.clientX - _resizeState.startX;
+    _cols[_resizeState.idx].w = Math.max(40, _resizeState.startW + delta);
+    applyColWidths();
+  };
+  const onUp = () => {
+    if(_resizeState) document.querySelector(`.col-resize-handle.dragging`)?.classList.remove('dragging');
+    _resizeState = null;
+    document.removeEventListener('mousemove', onMove);
+    document.removeEventListener('mouseup', onUp);
+  };
+  document.addEventListener('mousemove', onMove);
+  document.addEventListener('mouseup', onUp);
+}
+
+
 
 
 // ── STEELPORT — Supabase ─────────────────────────────────
