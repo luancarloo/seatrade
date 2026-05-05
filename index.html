@@ -75,6 +75,7 @@ body{font-family:'DM Sans',sans-serif;background:#F0F2F5;color:#1a1d23;font-size
 /* lineup */
 .lrow,.lhead{display:grid;gap:0;align-items:center;}
 .lrow{border-bottom:1px solid #f8f9fb;min-width:0;}
+.berco-header{transition:background .2s;}
 .lrow.seatrade-row{background:#1e3a8a !important;border-left:4px solid #1d4ed8;}
 .lrow.seatrade-row .lc{color:#fff !important;font-weight:700 !important;}
 .lrow.seatrade-row .st{background:rgba(255,255,255,0.2) !important;color:#fff !important;}
@@ -335,6 +336,51 @@ body{font-family:'DM Sans',sans-serif;background:#F0F2F5;color:#1a1d23;font-size
         </div>
       </div>
 
+      <div style="font-size:11px;font-weight:600;color:#475569;margin:14px 0 10px;text-transform:uppercase;letter-spacing:.5px;">Temas Claros</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+
+        <div class="theme-card" onclick="applyTheme('areia')" data-theme="areia" style="border:2px solid #e2e5ec;border-radius:8px;overflow:hidden;cursor:pointer;">
+          <div style="background:#f5f0e8;padding:8px;"><div style="background:#fff8ee;border-radius:4px;padding:5px;font-size:9px;color:#5c4a2a;font-weight:600;">Porto SFS</div><div style="display:flex;gap:3px;margin-top:4px;"><div style="flex:1;height:20px;background:#fff8ee;border-radius:3px;border:1px solid #e8d9b5;"></div><div style="flex:1;height:20px;background:#fff8ee;border-radius:3px;border:1px solid #e8d9b5;"></div><div style="width:40px;height:20px;background:#fff8ee;border-radius:3px;"></div></div></div>
+          <div style="padding:6px 8px;background:#8b6914;font-size:10px;font-weight:600;color:#fff8dc;">🏖 Areia</div>
+        </div>
+
+        <div class="theme-card" onclick="applyTheme('menta')" data-theme="menta" style="border:2px solid #e2e5ec;border-radius:8px;overflow:hidden;cursor:pointer;">
+          <div style="background:#e8f5f0;padding:8px;"><div style="background:#edfaf3;border-radius:4px;padding:5px;font-size:9px;color:#1a5c42;font-weight:600;">Porto SFS</div><div style="display:flex;gap:3px;margin-top:4px;"><div style="flex:1;height:20px;background:#edfaf3;border-radius:3px;border:1px solid #b8ecd4;"></div><div style="flex:1;height:20px;background:#edfaf3;border-radius:3px;border:1px solid #b8ecd4;"></div><div style="width:40px;height:20px;background:#edfaf3;border-radius:3px;"></div></div></div>
+          <div style="padding:6px 8px;background:#0e7a50;font-size:10px;font-weight:600;color:#d0f7e8;">🌿 Menta</div>
+        </div>
+
+        <div class="theme-card" onclick="applyTheme('lavanda')" data-theme="lavanda" style="border:2px solid #e2e5ec;border-radius:8px;overflow:hidden;cursor:pointer;">
+          <div style="background:#ede8f5;padding:8px;"><div style="background:#f3eeff;border-radius:4px;padding:5px;font-size:9px;color:#4a2980;font-weight:600;">Porto SFS</div><div style="display:flex;gap:3px;margin-top:4px;"><div style="flex:1;height:20px;background:#f3eeff;border-radius:3px;border:1px solid #d8b8f8;"></div><div style="flex:1;height:20px;background:#f3eeff;border-radius:3px;border:1px solid #d8b8f8;"></div><div style="width:40px;height:20px;background:#f3eeff;border-radius:3px;"></div></div></div>
+          <div style="padding:6px 8px;background:#5b21b6;font-size:10px;font-weight:600;color:#ede8f5;">💜 Lavanda</div>
+        </div>
+
+        <div class="theme-card" onclick="applyTheme('cobre')" data-theme="cobre" style="border:2px solid #e2e5ec;border-radius:8px;overflow:hidden;cursor:pointer;">
+          <div style="background:#f5ece8;padding:8px;"><div style="background:#fff0ea;border-radius:4px;padding:5px;font-size:9px;color:#7c3010;font-weight:600;">Porto SFS</div><div style="display:flex;gap:3px;margin-top:4px;"><div style="flex:1;height:20px;background:#fff0ea;border-radius:3px;border:1px solid #f8c4a4;"></div><div style="flex:1;height:20px;background:#fff0ea;border-radius:3px;border:1px solid #f8c4a4;"></div><div style="width:40px;height:20px;background:#fff0ea;border-radius:3px;"></div></div></div>
+          <div style="padding:6px 8px;background:#9a3a10;font-size:10px;font-weight:600;color:#ffe8d8;">🔶 Cobre</div>
+        </div>
+
+        <div class="theme-card" onclick="applyTheme('portoclaro')" data-theme="portoclaro" style="border:2px solid #e2e5ec;border-radius:8px;overflow:hidden;cursor:pointer;">
+          <div style="background:#e8edf5;padding:8px;"><div style="background:#e8f0fa;border-radius:4px;padding:5px;font-size:9px;color:#1e3a5f;font-weight:600;">Porto SFS</div><div style="display:flex;gap:3px;margin-top:4px;"><div style="flex:1;height:20px;background:#e8f0fa;border-radius:3px;border:1px solid #b8d0f0;"></div><div style="flex:1;height:20px;background:#e8f0fa;border-radius:3px;border:1px solid #b8d0f0;"></div><div style="width:40px;height:20px;background:#e8f0fa;border-radius:3px;"></div></div></div>
+          <div style="padding:6px 8px;background:#1e3a5f;font-size:10px;font-weight:600;color:#c8e0f8;">⚓ Porto Claro</div>
+        </div>
+
+        <div class="theme-card" onclick="applyTheme('blush')" data-theme="blush" style="border:2px solid #e2e5ec;border-radius:8px;overflow:hidden;cursor:pointer;">
+          <div style="background:#faeef2;padding:8px;"><div style="background:#fceef3;border-radius:4px;padding:5px;font-size:9px;color:#8c2244;font-weight:600;">Porto SFS</div><div style="display:flex;gap:3px;margin-top:4px;"><div style="flex:1;height:20px;background:#fceef3;border-radius:3px;border:1px solid #f5b8ce;"></div><div style="flex:1;height:20px;background:#fceef3;border-radius:3px;border:1px solid #f5b8ce;"></div><div style="width:40px;height:20px;background:#fceef3;border-radius:3px;"></div></div></div>
+          <div style="padding:6px 8px;background:#8c2244;font-size:10px;font-weight:600;color:#fde8ef;">🌸 Blush</div>
+        </div>
+
+        <div class="theme-card" onclick="applyTheme('cimento')" data-theme="cimento" style="border:2px solid #e2e5ec;border-radius:8px;overflow:hidden;cursor:pointer;">
+          <div style="background:#eeece8;padding:8px;"><div style="background:#efecea;border-radius:4px;padding:5px;font-size:9px;color:#3d3a34;font-weight:600;">Porto SFS</div><div style="display:flex;gap:3px;margin-top:4px;"><div style="flex:1;height:20px;background:#efecea;border-radius:3px;border:1px solid #ccc8c0;"></div><div style="flex:1;height:20px;background:#efecea;border-radius:3px;border:1px solid #ccc8c0;"></div><div style="width:40px;height:20px;background:#efecea;border-radius:3px;"></div></div></div>
+          <div style="padding:6px 8px;background:#3d3a34;font-size:10px;font-weight:600;color:#e8e4dc;">🪨 Cimento</div>
+        </div>
+
+        <div class="theme-card" onclick="applyTheme('aqua')" data-theme="aqua" style="border:2px solid #e2e5ec;border-radius:8px;overflow:hidden;cursor:pointer;">
+          <div style="background:#e4f4f8;padding:8px;"><div style="background:#e0f6fc;border-radius:4px;padding:5px;font-size:9px;color:#0a5a6e;font-weight:600;">Porto SFS</div><div style="display:flex;gap:3px;margin-top:4px;"><div style="flex:1;height:20px;background:#e0f6fc;border-radius:3px;border:1px solid #98dced;"></div><div style="flex:1;height:20px;background:#e0f6fc;border-radius:3px;border:1px solid #98dced;"></div><div style="width:40px;height:20px;background:#e0f6fc;border-radius:3px;"></div></div></div>
+          <div style="padding:6px 8px;background:#0a5a6e;font-size:10px;font-weight:600;color:#c8eef8;">🪸 Aqua</div>
+        </div>
+
+      </div>
+
       <div style="margin-top:16px;padding:12px;background:#f8f9fb;border-radius:8px;border:1px solid #e2e5ec;">
         <div style="font-size:11px;font-weight:600;color:#475569;margin-bottom:8px;">Cor de destaque</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
@@ -356,6 +402,19 @@ body{font-family:'DM Sans',sans-serif;background:#F0F2F5;color:#1a1d23;font-size
       <div id="blocosLista" style="display:flex;flex-direction:column;gap:8px;"></div>
       <div style="margin-top:14px;padding:10px;background:#eff6ff;border-radius:8px;font-size:11px;color:#1e40af;">
         💡 Arraste os blocos para reordenar na tela
+      </div>
+
+      <div style="margin-top:18px;">
+        <div style="font-size:12px;font-weight:600;color:#475569;margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px;">Berços no Lineup</div>
+        <div style="font-size:11px;color:#94a3b8;margin-bottom:10px;">Selecione quais berços serão exibidos na programação de navios</div>
+        <div id="bercosFiltroLista" style="display:flex;flex-direction:column;gap:6px;"></div>
+        <div style="margin-top:10px;display:flex;gap:6px;">
+          <button onclick="selecionarTodosBercos(true)" style="flex:1;padding:7px;border-radius:6px;border:1px solid #e2e5ec;background:#fff;font-size:11px;cursor:pointer;font-family:inherit;">✓ Todos</button>
+          <button onclick="selecionarTodosBercos(false)" style="flex:1;padding:7px;border-radius:6px;border:1px solid #e2e5ec;background:#fff;font-size:11px;cursor:pointer;font-family:inherit;">✗ Nenhum</button>
+        </div>
+        <div style="margin-top:8px;padding:8px 10px;background:#f8f9fb;border-radius:6px;border:1px solid #e2e5ec;font-size:10px;color:#94a3b8;">
+          Os berços são detectados automaticamente do lineup. Se um berço não aparecer aqui, navegue até a programação de navios primeiro.
+        </div>
       </div>
     </div>
 
@@ -631,6 +690,62 @@ body[data-theme="contrast"] {
   --topbar-bg: #111; --topbar-border: #333;
   --ticker-bg: #000; --head-bg: #0a0a0a; --accent: #fff;
   --accent-light: rgba(255,255,255,.1); --row-hover: #1a1a1a;
+}
+body[data-theme="areia"] {
+  --bg: #faf7f0; --card-bg: #fff8ee; --card-border: #e8d9b5;
+  --text: #3a2e1a; --text-muted: #9a7c3a; --text-sub: #6b5520;
+  --topbar-bg: #f5f0e8; --topbar-border: #e8d9b5;
+  --ticker-bg: #8b6914; --head-bg: #f5f0e8;
+  --accent: #8b6914; --accent-light: #d4a85322; --row-hover: #fff3dc;
+}
+body[data-theme="menta"] {
+  --bg: #f4fdf8; --card-bg: #edfaf3; --card-border: #b8ecd4;
+  --text: #0a2e1e; --text-muted: #0e7a50; --text-sub: #1a5c42;
+  --topbar-bg: #e8f5f0; --topbar-border: #b8ecd4;
+  --ticker-bg: #0e7a50; --head-bg: #e8f5f0;
+  --accent: #0e7a50; --accent-light: #2ecc8a22; --row-hover: #d8f7ea;
+}
+body[data-theme="lavanda"] {
+  --bg: #faf8ff; --card-bg: #f3eeff; --card-border: #d8b8f8;
+  --text: #1e0a40; --text-muted: #5b21b6; --text-sub: #4a2980;
+  --topbar-bg: #ede8f5; --topbar-border: #d8b8f8;
+  --ticker-bg: #5b21b6; --head-bg: #ede8f5;
+  --accent: #5b21b6; --accent-light: #8b5cf622; --row-hover: #ece4ff;
+}
+body[data-theme="cobre"] {
+  --bg: #fdf8f5; --card-bg: #fff0ea; --card-border: #f8c4a4;
+  --text: #3a1505; --text-muted: #9a3a10; --text-sub: #7c3010;
+  --topbar-bg: #f5ece8; --topbar-border: #f8c4a4;
+  --ticker-bg: #9a3a10; --head-bg: #f5ece8;
+  --accent: #9a3a10; --accent-light: #e0703822; --row-hover: #ffe4d0;
+}
+body[data-theme="portoclaro"] {
+  --bg: #f2f6fc; --card-bg: #e8f0fa; --card-border: #b8d0f0;
+  --text: #0a1e38; --text-muted: #1e3a5f; --text-sub: #2a4f7c;
+  --topbar-bg: #e8edf5; --topbar-border: #b8d0f0;
+  --ticker-bg: #1e3a5f; --head-bg: #e8edf5;
+  --accent: #1e3a5f; --accent-light: #4a90d922; --row-hover: #d8e8f8;
+}
+body[data-theme="blush"] {
+  --bg: #fdf5f8; --card-bg: #fceef3; --card-border: #f5b8ce;
+  --text: #3a0a1e; --text-muted: #8c2244; --text-sub: #6e1a36;
+  --topbar-bg: #faeef2; --topbar-border: #f5b8ce;
+  --ticker-bg: #8c2244; --head-bg: #faeef2;
+  --accent: #8c2244; --accent-light: #e8608a22; --row-hover: #fce0ea;
+}
+body[data-theme="cimento"] {
+  --bg: #f7f5f2; --card-bg: #efecea; --card-border: #ccc8c0;
+  --text: #1a1814; --text-muted: #5a5650; --text-sub: #3d3a34;
+  --topbar-bg: #eeece8; --topbar-border: #ccc8c0;
+  --ticker-bg: #3d3a34; --head-bg: #eeece8;
+  --accent: #3d3a34; --accent-light: #7a746822; --row-hover: #e4e0d8;
+}
+body[data-theme="aqua"] {
+  --bg: #f0fafd; --card-bg: #e0f6fc; --card-border: #98dced;
+  --text: #021820; --text-muted: #0a5a6e; --text-sub: #0e7a8c;
+  --topbar-bg: #e4f4f8; --topbar-border: #98dced;
+  --ticker-bg: #0a5a6e; --head-bg: #e4f4f8;
+  --accent: #0a5a6e; --accent-light: #18a8c822; --row-hover: #c8f0fa;
 }
 
 /* Aplica variáveis em todos os elementos */
@@ -1024,10 +1139,30 @@ async function loadLineup(){
 
 function parseLineup(html){
   const doc=new DOMParser().parseFromString(html,'text/html');
-  const res=[];let berco='';
+  const res=[];
+  let berco='', bercoInfo={};
+
   doc.querySelectorAll('tr').forEach(tr=>{
-    const m=tr.textContent.match(/Berth\s+(\d+)/);
-    if(m){berco=m[1];return;}
+    const txt=tr.textContent.trim().replace(/\s+/g,' ');
+
+    // Cabeçalho de berço: "Berth 101 - PUBLIC PORT LOA: 230,00 Berth Draft: 12,80"
+    const mh = txt.match(/Berth\s+(\d+)\s*-\s*(.+?)\s+LOA:\s*([\d,]+)\s*Berth Draft:\s*([\d,]+)/);
+    if(mh){
+      berco = mh[1];
+      bercoInfo[berco] = {
+        num:   mh[1],
+        tipo:  mh[2].trim(),
+        loa:   mh[3].trim(),
+        draft: mh[4].trim(),
+      };
+      // Insere um item marcador de cabeçalho
+      res.push({_header: true, berco: mh[1], tipo: mh[2].trim(), loa: mh[3].trim(), draft: mh[4].trim()});
+      return;
+    }
+    // Linha simples de berço (sem LOA)
+    const ms = txt.match(/^Berth\s+(\d+)/);
+    if(ms && tr.querySelectorAll('td').length <= 3){ berco=ms[1]; return; }
+
     const tds=[...tr.querySelectorAll('td')];
     if(tds.length<8) return;
     const v=tds.map(td=>td.textContent.trim());
@@ -1041,7 +1176,7 @@ function parseLineup(html){
         etb: (v[6]||'').replace(' AM','').replace(' PM','').substring(0,10),
         carga,
         balance: v[12]||'',
-        agent: (v[13]||'').trim()
+        agent:  (v[13]||'').trim()
       });
     }
   });
@@ -1106,6 +1241,33 @@ function sortLineup(col){
 }
 
 function sortedLineupData(navios){
+  // Se há cabeçalhos de berço, mantém estrutura agrupada por berço
+  const hasHeaders = navios.some(n=>n._header);
+  if(hasHeaders){
+    // Agrupa por berço preservando cabeçalhos
+    const grupos = {};
+    const ordem = [];
+    navios.forEach(n=>{
+      if(n._header){
+        if(!grupos[n.berco]) { grupos[n.berco]={header:n, navios:[]}; ordem.push(n.berco); }
+        else grupos[n.berco].header = n;
+        return;
+      }
+      if(!grupos[n.berco]) { grupos[n.berco]={header:null, navios:[]}; ordem.push(n.berco); }
+      grupos[n.berco].navios.push(n);
+    });
+    // Dentro de cada berço: Berthed primeiro
+    const result = [];
+    ordem.forEach(b=>{
+      const g = grupos[b];
+      if(g.header) result.push(g.header);
+      const berthed = g.navios.filter(n=>n.status==='Berthed');
+      const rest    = g.navios.filter(n=>n.status!=='Berthed');
+      result.push(...berthed, ...rest);
+    });
+    return result;
+  }
+  // Sem cabeçalhos: comportamento original
   const berthed = navios.filter(n=>n.status==='Berthed');
   const rest    = navios.filter(n=>n.status!=='Berthed');
   const col = _lineupSort.col;
@@ -1126,6 +1288,12 @@ function sortedLineupData(navios){
 // ── renderLineup (entrada principal) ────────────────────
 function renderLineup(navios){
   _lineupData = navios;
+  // Detecta berços presentes
+  const novos = [...new Set(navios.map(n=>n.berco))].filter(Boolean).sort((a,b)=>+a-+b);
+  if(novos.length > _bercosDetectados.length){
+    _bercosDetectados = novos;
+    buildBercosFiltro(); // atualiza lista no painel se estiver aberto
+  }
   document.getElementById('lCnt').textContent = navios.length+' navios';
   renderLineupHead();
   renderLineupRows(sortedLineupData(navios));
@@ -1133,6 +1301,21 @@ function renderLineup(navios){
 
 // ── renderLineupRows ─────────────────────────────────────
 function renderLineupRows(navios){
+  // Aplica filtro de berços se configurado (ignora headers na contagem)
+  const bercoAtivo = _cfg.bercosFiltro;
+  if(bercoAtivo !== null && bercoAtivo !== undefined){
+    if(bercoAtivo.length === 0){
+      document.getElementById('lList').innerHTML='<div style="padding:16px 12px;font-size:12px;color:#94a3b8;text-align:center;">Nenhum berço selecionado.<br>Configure em ⚙ Config → Blocos.</div>';
+      document.getElementById('lCnt').textContent = '0 navios';
+      return;
+    }
+    navios = navios.filter(n => n._header ? bercoAtivo.includes(n.berco) : bercoAtivo.includes(n.berco));
+    // Remove headers de berços vazios (sem navios após filtro)
+    const bercosComNavios = new Set(navios.filter(n=>!n._header).map(n=>n.berco));
+    navios = navios.filter(n => !n._header || bercosComNavios.has(n.berco));
+  }
+  const naviosReais = navios.filter(n=>!n._header);
+  document.getElementById('lCnt').textContent = naviosReais.length+' navios';
   const sc  = {Berthed:'stB',Awaiting:'stA',Expected:'stE'};
   const stL = {Berthed:'Atracado',Awaiting:'Aguardando',Expected:'Esperado'};
 
@@ -1159,8 +1342,26 @@ function renderLineupRows(navios){
     }
   };
 
+  // Calcula largura total das colunas para os headers
+  const totalW = _cols.reduce((s,c)=>s+c.w, 0) + 'px';
+
   document.getElementById('lList').innerHTML = navios.map(n => {
-    const isBerthed  = n.status === 'Berthed';
+
+    // ── Cabeçalho de berço ──────────────────────────────────
+    if(n._header){
+      return `<div class="berco-header" style="display:flex;align-items:center;justify-content:space-between;padding:6px 12px;background:linear-gradient(90deg,#1a3a6b,#1e4d8c);color:#fff;margin:2px 0 0;border-radius:4px 4px 0 0;min-width:0;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="font-size:14px;font-weight:700;letter-spacing:.5px;font-family:'DM Mono',monospace;">Berço ${n.berco}</span>
+          <span style="font-size:10px;font-weight:400;opacity:.8;background:rgba(255,255,255,.15);padding:2px 8px;border-radius:10px;">${n.tipo}</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:14px;font-size:10px;opacity:.9;">
+          <span>LOA <b style="font-size:11px;">${n.loa} m</b></span>
+          <span>Calado <b style="font-size:11px;">${n.draft} m</b></span>
+        </div>
+      </div>`;
+    }
+
+    // ── Linha normal ────────────────────────────────────────
     const isSeatrade = (n.agent||'').toUpperCase().includes('SEATRADE');
     const rowCls = isSeatrade ? 'lrow seatrade-row' : 'lrow';
     const cells = _cols.map(col =>
@@ -1559,6 +1760,7 @@ let _cfg = {
     {id:'steel',  label:'SteelPort · Estoque',      visible:true, rot:true},
   ],
   rotTimer:10, rotActive:false,
+  bercosFiltro: null, // null = todos; array de strings = filtro ativo
 };
 
 function getBlocoEl(id){
@@ -1575,6 +1777,59 @@ function loadCfg(){
 function saveConfig(){
   localStorage.setItem(CFG_KEY,JSON.stringify(_cfg));
 }
+// ── Filtro de berços do lineup ───────────────────────────
+let _bercosDetectados = []; // detectados ao carregar o lineup
+
+function buildBercosFiltro(){
+  const cont = document.getElementById('bercosFiltroLista');
+  if(!cont) return;
+
+  const todos = _bercosDetectados.length ? _bercosDetectados
+    : ['101','102','103','201','301','302']; // fallback se lineup não carregou
+
+  const ativos = _cfg.bercosFiltro || todos; // null = todos ativos
+
+  cont.innerHTML = todos.map(b => {
+    const on = ativos.includes(b);
+    return `<div style="display:flex;align-items:center;justify-content:space-between;padding:9px 12px;background:#f8f9fb;border-radius:7px;border:1px solid #e2e5ec;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:13px;font-weight:700;color:#1e40af;font-family:'DM Mono',monospace;background:#dbeafe;border-radius:4px;padding:2px 8px;">${b}</span>
+        <span style="font-size:11px;color:#475569;">Berço ${b}</span>
+      </div>
+      <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
+        <input type="checkbox" ${on?'checked':''} data-berco="${b}"
+          onchange="toggleBerco('${b}',this.checked)"
+          style="accent-color:#1a3a6b;width:16px;height:16px;">
+        <span style="font-size:11px;color:#475569;">${on?'Visível':'Oculto'}</span>
+      </label>
+    </div>`;
+  }).join('');
+}
+
+function toggleBerco(berco, on){
+  const todos = _bercosDetectados.length ? _bercosDetectados : ['101','102','103','201','301','302'];
+  // Começa com todos se ainda não filtrou
+  if(!_cfg.bercosFiltro) _cfg.bercosFiltro = [...todos];
+  if(on){
+    if(!_cfg.bercosFiltro.includes(berco)) _cfg.bercosFiltro.push(berco);
+  } else {
+    _cfg.bercosFiltro = _cfg.bercosFiltro.filter(b=>b!==berco);
+  }
+  saveConfig();
+  // Re-renderiza o lineup com o filtro aplicado
+  if(_lineupData.length) renderLineupRows(sortedLineupData(_lineupData));
+  // Atualiza label do checkbox
+  buildBercosFiltro();
+}
+
+function selecionarTodosBercos(on){
+  const todos = _bercosDetectados.length ? _bercosDetectados : ['101','102','103','201','301','302'];
+  _cfg.bercosFiltro = on ? null : []; // null = todos, [] = nenhum
+  saveConfig();
+  buildBercosFiltro();
+  if(_lineupData.length) renderLineupRows(sortedLineupData(_lineupData));
+}
+
 function applyAllConfig(){
   applyTheme(_cfg.theme,false);
   setAccent(_cfg.accent,false);
@@ -1599,7 +1854,7 @@ function applyAllConfig(){
 function openConfig(){
   document.getElementById('cfgOverlay').style.display='block';
   document.getElementById('cfgPanel').style.display='flex';
-  buildBlocosList(); buildRotacaoList(); syncConfigUI();
+  buildBlocosList(); buildRotacaoList(); syncConfigUI(); buildBercosFiltro();
 }
 function closeConfig(){
   document.getElementById('cfgOverlay').style.display='none';
@@ -1648,6 +1903,14 @@ function applyTheme(name,save=true){
     sunset:  {bg:'#1a0a2e',card:'#2d1b4e',border:'#4a2d7a',text:'#ffe0f0',muted:'#ff6b9d',sub:'#ffb3d1',topbar:'#2d1b4e',ticker:'#1a0a2e',head:'#250d3e',hover:'#3d2460',accent:'#ff6b9d'},
     steel:   {bg:'#1e2028',card:'#282c34',border:'#3e4451',text:'#abb2bf',muted:'#5c6370',sub:'#828997',topbar:'#21252b',ticker:'#181a1f',head:'#21252b',hover:'#2c313c',accent:'#61afef'},
     aurora:  {bg:'#011627',card:'#022b4e',border:'#0a4275',text:'#d6deeb',muted:'#637777',sub:'#7fdbca',topbar:'#022b4e',ticker:'#011627',head:'#01213c',hover:'#023d6e',accent:'#7fdbca'},
+    areia:      {bg:'#faf7f0',card:'#fff8ee',border:'#e8d9b5',text:'#3a2e1a',muted:'#9a7c3a',sub:'#6b5520',topbar:'#f5f0e8',ticker:'#8b6914',head:'#f5f0e8',hover:'#fff3dc',accent:'#8b6914'},
+    menta:      {bg:'#f4fdf8',card:'#edfaf3',border:'#b8ecd4',text:'#0a2e1e',muted:'#0e7a50',sub:'#1a5c42',topbar:'#e8f5f0',ticker:'#0e7a50',head:'#e8f5f0',hover:'#d8f7ea',accent:'#0e7a50'},
+    lavanda:    {bg:'#faf8ff',card:'#f3eeff',border:'#d8b8f8',text:'#1e0a40',muted:'#5b21b6',sub:'#4a2980',topbar:'#ede8f5',ticker:'#5b21b6',head:'#ede8f5',hover:'#ece4ff',accent:'#5b21b6'},
+    cobre:      {bg:'#fdf8f5',card:'#fff0ea',border:'#f8c4a4',text:'#3a1505',muted:'#9a3a10',sub:'#7c3010',topbar:'#f5ece8',ticker:'#9a3a10',head:'#f5ece8',hover:'#ffe4d0',accent:'#9a3a10'},
+    portoclaro: {bg:'#f2f6fc',card:'#e8f0fa',border:'#b8d0f0',text:'#0a1e38',muted:'#1e3a5f',sub:'#2a4f7c',topbar:'#e8edf5',ticker:'#1e3a5f',head:'#e8edf5',hover:'#d8e8f8',accent:'#1e3a5f'},
+    blush:      {bg:'#fdf5f8',card:'#fceef3',border:'#f5b8ce',text:'#3a0a1e',muted:'#8c2244',sub:'#6e1a36',topbar:'#faeef2',ticker:'#8c2244',head:'#faeef2',hover:'#fce0ea',accent:'#8c2244'},
+    cimento:    {bg:'#f7f5f2',card:'#efecea',border:'#ccc8c0',text:'#1a1814',muted:'#5a5650',sub:'#3d3a34',topbar:'#eeece8',ticker:'#3d3a34',head:'#eeece8',hover:'#e4e0d8',accent:'#3d3a34'},
+    aqua:       {bg:'#f0fafd',card:'#e0f6fc',border:'#98dced',text:'#021820',muted:'#0a5a6e',sub:'#0e7a8c',topbar:'#e4f4f8',ticker:'#0a5a6e',head:'#e4f4f8',hover:'#c8f0fa',accent:'#0a5a6e'},
     light:   {bg:'#F0F2F5',card:'#fff',border:'#e2e5ec',text:'#1a1d23',muted:'#94a3b8',sub:'#475569',topbar:'#fff',ticker:'#1a3a6b',head:'#fafbfc',hover:'#fafbfc'},
     dark:    {bg:'#0f172a',card:'#1e293b',border:'#334155',text:'#e2e8f0',muted:'#64748b',sub:'#94a3b8',topbar:'#1e293b',ticker:'#0f172a',head:'#1a2744',hover:'#243147'},
     navy:    {bg:'#0a1628',card:'#0d2137',border:'#1e3a5f',text:'#e2f0ff',muted:'#5b7fa6',sub:'#7ba3c8',topbar:'#0d2137',ticker:'#061020',head:'#0a1c30',hover:'#102440'},
@@ -1665,6 +1928,11 @@ function applyTheme(name,save=true){
   // Topbar
   const topbar=document.querySelector('.topbar');
   if(topbar){topbar.style.background=p.topbar;topbar.style.borderColor=p.border;}
+  // Cabeçalhos de berço — cor baseada no accent
+  const acc=p.accent||'#1a3a6b';
+  document.querySelectorAll('.berco-header').forEach(h=>{
+    h.style.background='linear-gradient(90deg,'+acc+','+acc+'cc)';
+  });
 
   // Ticker
   const ticker=document.querySelector('.ticker');
