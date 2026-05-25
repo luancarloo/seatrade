@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Porto SFS · Dashboard Operacional</title>
+<title>Porto SFS · Dashboard Operacional v61</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -76,10 +76,7 @@ body{font-family:'DM Sans',sans-serif;background:#F0F2F5;color:#1a1d23;font-size
 .lrow,.lhead{display:grid;gap:0;align-items:center;}
 .lrow{border-bottom:1px solid #f8f9fb;min-width:0;}
 .berco-header{transition:background .2s;}
-.lrow.seatrade-row{background:#1e3a8a !important;border-left:4px solid #1d4ed8;}
-.lrow.seatrade-row .lc{color:#fff !important;font-weight:700 !important;}
-.lrow.seatrade-row .st{background:rgba(255,255,255,0.2) !important;color:#fff !important;}
-.lrow.seatrade-row .bs{background:rgba(255,255,255,0.15) !important;color:#fff !important;}
+/* .seatrade-row gerenciado dinamicamente via JS */
 .lrow:hover:not(.seatrade-row){background:#f8f9fb;}
 .lhead{background:#fafbfc;border-bottom:2px solid #e2e5ec;position:sticky;top:0;z-index:10;}
 /* Célula de coluna */
@@ -116,7 +113,26 @@ body{font-family:'DM Sans',sans-serif;background:#F0F2F5;color:#1a1d23;font-size
 .shead{background:#fafbfc;border-bottom:1px solid #f0f2f6;position:sticky;top:0;}
 .srow{border-bottom:1px solid #f8f9fb;}.srow:last-child{border:none;}.srow:hover{background:#fafbfc;}
 .nt{font-size:10px;font-weight:600;color:#0f766e;background:#ccfbf1;border-radius:3px;padding:1px 5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.stot{display:grid;grid-template-columns:1fr 72px 50px 58px;gap:5px;align-items:center;padding:5px 12px;background:#f8f9fb;border-top:1px solid #e2e5ec;flex-shrink:0;}
+.stot{display:grid;gap:5px;align-items:center;padding:5px 12px;background:#f8f9fb;border-top:1px solid #e2e5ec;flex-shrink:0;}
+/* Estoque Madeira */
+.wood-head{display:grid;background:#fafbfc;border-bottom:2px solid #e2e5ec;position:sticky;top:0;z-index:5;}
+.wood-row{display:grid;border-bottom:1px solid #f4f6f8;}
+.wood-row:hover{background:#fafbfc;}
+.wc{padding:5px 8px;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.wood-head .wc{font-size:9px;font-weight:600;letter-spacing:.5px;color:#94a3b8;text-transform:uppercase;}
+.wood-group{background:#f0fdf4;border-left:3px solid #10b981;}
+.wood-group .wc{font-size:11px;font-weight:600;color:#065f46;}
+.wood-tot{display:grid;background:#f8f9fb;border-top:2px solid #e2e5ec;}
+.wood-tot .wc{font-size:11px;font-weight:700;}
+.wood-badge{display:inline-block;padding:1px 6px;border-radius:3px;font-size:10px;font-weight:600;}
+.wb-wh{background:#dbeafe;color:#1e40af;}
+.wb-ca{background:#fef3c7;color:#92400e;}
+.wb-tot{background:#dcfce7;color:#166534;}
+.wood-side{padding:6px 10px;display:grid;grid-template-columns:1fr auto;gap:3px 8px;align-items:center;border-top:1px solid #f0f2f6;font-size:10px;}
+.wood-side-lbl{color:#94a3b8;}
+.wood-side-val{text-align:right;font-weight:600;color:#1a1d23;}
+.wood-side-val.pos{color:#10b981;}
+.wood-side-val.neg{color:#ef4444;}
 
 /* direita */
 .rcol{grid-row:span 2;display:flex;flex-direction:column;gap:8px;}
@@ -232,23 +248,28 @@ body{font-family:'DM Sans',sans-serif;background:#F0F2F5;color:#1a1d23;font-size
     </div>
   </div>
 
-  <!-- STEELPORT -->
-  <div class="card">
+  <!-- ESTOQUE MADEIRA -->
+  <div class="card" id="woodCard">
     <div class="card-h">
       <div style="display:flex;align-items:center;gap:7px;">
-        <span class="card-title">4SIDES · SteelPort · Estoque por Navio</span>
-        <span class="src src-t">Supabase</span>
-        <span id="sUpd" style="font-size:9px;color:#94a3b8;"></span>
+        <span class="card-title">Estoque · Armazéns SFS</span>
+        <span id="woodUpd" style="font-size:9px;color:#94a3b8;">—</span>
       </div>
       <div style="display:flex;align-items:center;gap:5px;">
-        <span class="badge b-teal" id="sCnt">—</span>
-        <button class="btn-r" onclick="loadSteel()">↻</button>
+        <span class="badge b-green" id="woodTotal">—</span>
+        <label title="Carregar planilha Excel" class="btn-r" style="cursor:pointer;">📂<input type="file" accept=".xlsx,.xls" style="display:none;" onchange="loadWoodFromFile(this)"></label>
+        <button class="btn-r" onclick="openWoodEditor()" title="Editar dados">✏</button>
+        <button class="btn-r" onclick="loadWood()" title="Recarregar do servidor">↻</button>
       </div>
     </div>
-    <div id="steelHead"></div>
-    <div class="card-body" id="sList"><div style="padding:14px 12px;color:#94a3b8;font-size:11px;">Conectando ao SteelPort...</div></div>
-    <div id="steelTotRow" style="display:none;padding:5px 12px;background:#f8f9fb;border-top:1px solid #e2e5ec;font-size:11px;font-weight:600;"></div>
+    <div id="woodHead"></div>
+    <div class="card-body" id="woodBody" style="overflow-y:auto;padding:0;">
+      <div style="padding:14px 12px;color:#94a3b8;font-size:11px;">Carregando...</div>
+    </div>
+    <div id="woodTot"></div>
   </div>
+
+
 
   <!-- IDs hidden para compatibilidade com JS existente -->
   <div style="display:none;" id="mS-wrap">
@@ -394,6 +415,128 @@ body{font-family:'DM Sans',sans-serif;background:#F0F2F5;color:#1a1d23;font-size
           <input type="color" id="accentCustom" onchange="setAccent(this.value)" style="width:24px;height:24px;border-radius:50%;border:none;cursor:pointer;padding:0;" title="Personalizar cor">
         </div>
       </div>
+
+      <!-- Cor das linhas Seatrade -->
+      <div style="margin-top:16px;padding:12px;background:#f8f9fb;border-radius:8px;border:1px solid #e2e5ec;">
+        <div style="font-size:11px;font-weight:600;color:#475569;margin-bottom:10px;">🔵 Cor das linhas — Agência Seatrade</div>
+        <div style="display:flex;gap:12px;margin-bottom:10px;">
+          <div style="flex:1;">
+            <div style="font-size:10px;color:#94a3b8;margin-bottom:5px;">Fundo</div>
+            <div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center;">
+              <div onclick="setSeatradeColor('bg','#1e3a8a')" style="width:22px;height:22px;border-radius:50%;background:#1e3a8a;cursor:pointer;border:2px solid transparent;" class="sc-dot"></div>
+              <div onclick="setSeatradeColor('bg','#166534')" style="width:22px;height:22px;border-radius:50%;background:#166534;cursor:pointer;border:2px solid transparent;" class="sc-dot"></div>
+              <div onclick="setSeatradeColor('bg','#7c2d12')" style="width:22px;height:22px;border-radius:50%;background:#7c2d12;cursor:pointer;border:2px solid transparent;" class="sc-dot"></div>
+              <div onclick="setSeatradeColor('bg','#6b21a8')" style="width:22px;height:22px;border-radius:50%;background:#6b21a8;cursor:pointer;border:2px solid transparent;" class="sc-dot"></div>
+              <div onclick="setSeatradeColor('bg','#0f172a')" style="width:22px;height:22px;border-radius:50%;background:#0f172a;cursor:pointer;border:2px solid transparent;" class="sc-dot"></div>
+              <div onclick="setSeatradeColor('bg','#b45309')" style="width:22px;height:22px;border-radius:50%;background:#b45309;cursor:pointer;border:2px solid transparent;" class="sc-dot"></div>
+              <input type="color" id="seatradeBgPicker" value="#1e3a8a" onchange="setSeatradeColor('bg',this.value)" style="width:22px;height:22px;border-radius:50%;border:1px solid #e2e5ec;padding:0;cursor:pointer;">
+            </div>
+          </div>
+          <div style="flex:1;">
+            <div style="font-size:10px;color:#94a3b8;margin-bottom:5px;">Texto</div>
+            <div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center;">
+              <div onclick="setSeatradeColor('text','#ffffff')" style="width:22px;height:22px;border-radius:50%;background:#fff;cursor:pointer;border:2px solid #e2e5ec;" class="sc-dot"></div>
+              <div onclick="setSeatradeColor('text','#fbbf24')" style="width:22px;height:22px;border-radius:50%;background:#fbbf24;cursor:pointer;border:1px solid #e2e5ec;" class="sc-dot"></div>
+              <div onclick="setSeatradeColor('text','#86efac')" style="width:22px;height:22px;border-radius:50%;background:#86efac;cursor:pointer;border:1px solid #e2e5ec;" class="sc-dot"></div>
+              <div onclick="setSeatradeColor('text','#93c5fd')" style="width:22px;height:22px;border-radius:50%;background:#93c5fd;cursor:pointer;border:1px solid #e2e5ec;" class="sc-dot"></div>
+              <div onclick="setSeatradeColor('text','#000000')" style="width:22px;height:22px;border-radius:50%;background:#000;cursor:pointer;border:1px solid #e2e5ec;" class="sc-dot"></div>
+              <input type="color" id="seatradeTextPicker" value="#ffffff" onchange="setSeatradeColor('text',this.value)" style="width:22px;height:22px;border-radius:50%;border:1px solid #e2e5ec;padding:0;cursor:pointer;">
+            </div>
+          </div>
+        </div>
+        <div id="seatradePreview" style="padding:7px 12px;border-radius:6px;background:#1e3a8a;color:#fff;font-size:12px;font-weight:600;display:flex;align-items:center;gap:8px;">
+          <span>⚓ SEATRADE · Agência</span><span style="font-size:10px;font-weight:400;opacity:.7;">— prévia da linha</span>
+        </div>
+      </div>
+
+      <!-- Temas Claros -->
+      <div style="font-size:11px;font-weight:600;color:#475569;margin:16px 0 10px;text-transform:uppercase;letter-spacing:.5px;">Temas Claros</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div class="theme-card" onclick="applyTheme('areia')" data-theme="areia" style="border:2px solid #e2e5ec;border-radius:8px;overflow:hidden;cursor:pointer;">
+          <div style="background:#f5f0e8;padding:8px;"><div style="background:#fff8ee;border-radius:4px;padding:5px;font-size:9px;color:#5c4a2a;font-weight:600;">Porto SFS</div><div style="display:flex;gap:3px;margin-top:4px;"><div style="flex:1;height:20px;background:#fff8ee;border-radius:3px;border:1px solid #e8d9b5;"></div><div style="flex:1;height:20px;background:#fff8ee;border-radius:3px;border:1px solid #e8d9b5;"></div><div style="width:40px;height:20px;background:#fff8ee;border-radius:3px;"></div></div></div>
+          <div style="padding:6px 8px;background:#8b6914;font-size:10px;font-weight:600;color:#fff8dc;">🏖 Areia</div>
+        </div>
+        <div class="theme-card" onclick="applyTheme('menta')" data-theme="menta" style="border:2px solid #e2e5ec;border-radius:8px;overflow:hidden;cursor:pointer;">
+          <div style="background:#e8f5f0;padding:8px;"><div style="background:#edfaf3;border-radius:4px;padding:5px;font-size:9px;color:#1a5c42;font-weight:600;">Porto SFS</div><div style="display:flex;gap:3px;margin-top:4px;"><div style="flex:1;height:20px;background:#edfaf3;border-radius:3px;border:1px solid #b8ecd4;"></div><div style="flex:1;height:20px;background:#edfaf3;border-radius:3px;border:1px solid #b8ecd4;"></div><div style="width:40px;height:20px;background:#edfaf3;border-radius:3px;"></div></div></div>
+          <div style="padding:6px 8px;background:#0e7a50;font-size:10px;font-weight:600;color:#d0f7e8;">🌿 Menta</div>
+        </div>
+        <div class="theme-card" onclick="applyTheme('lavanda')" data-theme="lavanda" style="border:2px solid #e2e5ec;border-radius:8px;overflow:hidden;cursor:pointer;">
+          <div style="background:#ede8f5;padding:8px;"><div style="background:#f3eeff;border-radius:4px;padding:5px;font-size:9px;color:#4a2980;font-weight:600;">Porto SFS</div><div style="display:flex;gap:3px;margin-top:4px;"><div style="flex:1;height:20px;background:#f3eeff;border-radius:3px;border:1px solid #d8b8f8;"></div><div style="flex:1;height:20px;background:#f3eeff;border-radius:3px;border:1px solid #d8b8f8;"></div><div style="width:40px;height:20px;background:#f3eeff;border-radius:3px;"></div></div></div>
+          <div style="padding:6px 8px;background:#5b21b6;font-size:10px;font-weight:600;color:#ede8f5;">💜 Lavanda</div>
+        </div>
+        <div class="theme-card" onclick="applyTheme('cobre')" data-theme="cobre" style="border:2px solid #e2e5ec;border-radius:8px;overflow:hidden;cursor:pointer;">
+          <div style="background:#f5ece8;padding:8px;"><div style="background:#fff0ea;border-radius:4px;padding:5px;font-size:9px;color:#7c3010;font-weight:600;">Porto SFS</div><div style="display:flex;gap:3px;margin-top:4px;"><div style="flex:1;height:20px;background:#fff0ea;border-radius:3px;border:1px solid #f8c4a4;"></div><div style="flex:1;height:20px;background:#fff0ea;border-radius:3px;border:1px solid #f8c4a4;"></div><div style="width:40px;height:20px;background:#fff0ea;border-radius:3px;"></div></div></div>
+          <div style="padding:6px 8px;background:#9a3a10;font-size:10px;font-weight:600;color:#ffe8d8;">🔶 Cobre</div>
+        </div>
+        <div class="theme-card" onclick="applyTheme('portoclaro')" data-theme="portoclaro" style="border:2px solid #e2e5ec;border-radius:8px;overflow:hidden;cursor:pointer;">
+          <div style="background:#e8edf5;padding:8px;"><div style="background:#e8f0fa;border-radius:4px;padding:5px;font-size:9px;color:#1e3a5f;font-weight:600;">Porto SFS</div><div style="display:flex;gap:3px;margin-top:4px;"><div style="flex:1;height:20px;background:#e8f0fa;border-radius:3px;border:1px solid #b8d0f0;"></div><div style="flex:1;height:20px;background:#e8f0fa;border-radius:3px;border:1px solid #b8d0f0;"></div><div style="width:40px;height:20px;background:#e8f0fa;border-radius:3px;"></div></div></div>
+          <div style="padding:6px 8px;background:#1e3a5f;font-size:10px;font-weight:600;color:#c8e0f8;">⚓ Porto Claro</div>
+        </div>
+        <div class="theme-card" onclick="applyTheme('blush')" data-theme="blush" style="border:2px solid #e2e5ec;border-radius:8px;overflow:hidden;cursor:pointer;">
+          <div style="background:#faeef2;padding:8px;"><div style="background:#fceef3;border-radius:4px;padding:5px;font-size:9px;color:#8c2244;font-weight:600;">Porto SFS</div><div style="display:flex;gap:3px;margin-top:4px;"><div style="flex:1;height:20px;background:#fceef3;border-radius:3px;border:1px solid #f5b8ce;"></div><div style="flex:1;height:20px;background:#fceef3;border-radius:3px;border:1px solid #f5b8ce;"></div><div style="width:40px;height:20px;background:#fceef3;border-radius:3px;"></div></div></div>
+          <div style="padding:6px 8px;background:#8c2244;font-size:10px;font-weight:600;color:#fde8ef;">🌸 Blush</div>
+        </div>
+        <div class="theme-card" onclick="applyTheme('cimento')" data-theme="cimento" style="border:2px solid #e2e5ec;border-radius:8px;overflow:hidden;cursor:pointer;">
+          <div style="background:#eeece8;padding:8px;"><div style="background:#efecea;border-radius:4px;padding:5px;font-size:9px;color:#3d3a34;font-weight:600;">Porto SFS</div><div style="display:flex;gap:3px;margin-top:4px;"><div style="flex:1;height:20px;background:#efecea;border-radius:3px;border:1px solid #ccc8c0;"></div><div style="flex:1;height:20px;background:#efecea;border-radius:3px;border:1px solid #ccc8c0;"></div><div style="width:40px;height:20px;background:#efecea;border-radius:3px;"></div></div></div>
+          <div style="padding:6px 8px;background:#3d3a34;font-size:10px;font-weight:600;color:#e8e4dc;">🪨 Cimento</div>
+        </div>
+        <div class="theme-card" onclick="applyTheme('aqua')" data-theme="aqua" style="border:2px solid #e2e5ec;border-radius:8px;overflow:hidden;cursor:pointer;">
+          <div style="background:#e4f4f8;padding:8px;"><div style="background:#e0f6fc;border-radius:4px;padding:5px;font-size:9px;color:#0a5a6e;font-weight:600;">Porto SFS</div><div style="display:flex;gap:3px;margin-top:4px;"><div style="flex:1;height:20px;background:#e0f6fc;border-radius:3px;border:1px solid #98dced;"></div><div style="flex:1;height:20px;background:#e0f6fc;border-radius:3px;border:1px solid #98dced;"></div><div style="width:40px;height:20px;background:#e0f6fc;border-radius:3px;"></div></div></div>
+          <div style="padding:6px 8px;background:#0a5a6e;font-size:10px;font-weight:600;color:#c8eef8;">🪸 Aqua</div>
+        </div>
+      </div>
+
+      <!-- Construtor de tema customizado -->
+      <div style="margin-top:20px;">
+        <div style="font-size:11px;font-weight:600;color:#475569;margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px;">🎨 Tema Customizado</div>
+        <div style="background:#f8f9fb;border-radius:10px;border:1px solid #e2e5ec;padding:14px;">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+            <label style="font-size:11px;color:#475569;">
+              <div style="margin-bottom:4px;font-weight:600;">Fundo da tela</div>
+              <div style="display:flex;align-items:center;gap:6px;">
+                <input type="color" id="ct_bg" value="#F0F2F5" oninput="previewCustomTheme()" style="width:36px;height:28px;border-radius:5px;border:1px solid #e2e5ec;cursor:pointer;padding:2px;">
+                <input type="text" id="ct_bg_txt" maxlength="7" value="#F0F2F5" oninput="syncCustomColor('ct_bg',this.value)" style="flex:1;padding:4px 6px;border:1px solid #e2e5ec;border-radius:5px;font-size:11px;font-family:'DM Mono',monospace;">
+              </div>
+            </label>
+            <label style="font-size:11px;color:#475569;">
+              <div style="margin-bottom:4px;font-weight:600;">Fundo dos cards</div>
+              <div style="display:flex;align-items:center;gap:6px;">
+                <input type="color" id="ct_card" value="#ffffff" oninput="previewCustomTheme()" style="width:36px;height:28px;border-radius:5px;border:1px solid #e2e5ec;cursor:pointer;padding:2px;">
+                <input type="text" id="ct_card_txt" maxlength="7" value="#ffffff" oninput="syncCustomColor('ct_card',this.value)" style="flex:1;padding:4px 6px;border:1px solid #e2e5ec;border-radius:5px;font-size:11px;font-family:'DM Mono',monospace;">
+              </div>
+            </label>
+            <label style="font-size:11px;color:#475569;">
+              <div style="margin-bottom:4px;font-weight:600;">Texto principal</div>
+              <div style="display:flex;align-items:center;gap:6px;">
+                <input type="color" id="ct_text" value="#1a1d23" oninput="previewCustomTheme()" style="width:36px;height:28px;border-radius:5px;border:1px solid #e2e5ec;cursor:pointer;padding:2px;">
+                <input type="text" id="ct_text_txt" maxlength="7" value="#1a1d23" oninput="syncCustomColor('ct_text',this.value)" style="flex:1;padding:4px 6px;border:1px solid #e2e5ec;border-radius:5px;font-size:11px;font-family:'DM Mono',monospace;">
+              </div>
+            </label>
+            <label style="font-size:11px;color:#475569;">
+              <div style="margin-bottom:4px;font-weight:600;">Barra superior</div>
+              <div style="display:flex;align-items:center;gap:6px;">
+                <input type="color" id="ct_topbar" value="#1a3a6b" oninput="previewCustomTheme()" style="width:36px;height:28px;border-radius:5px;border:1px solid #e2e5ec;cursor:pointer;padding:2px;">
+                <input type="text" id="ct_topbar_txt" maxlength="7" value="#1a3a6b" oninput="syncCustomColor('ct_topbar',this.value)" style="flex:1;padding:4px 6px;border:1px solid #e2e5ec;border-radius:5px;font-size:11px;font-family:'DM Mono',monospace;">
+              </div>
+            </label>
+            <label style="font-size:11px;color:#475569;">
+              <div style="margin-bottom:4px;font-weight:600;">Bordas</div>
+              <div style="display:flex;align-items:center;gap:6px;">
+                <input type="color" id="ct_border" value="#e2e5ec" oninput="previewCustomTheme()" style="width:36px;height:28px;border-radius:5px;border:1px solid #e2e5ec;cursor:pointer;padding:2px;">
+                <input type="text" id="ct_border_txt" maxlength="7" value="#e2e5ec" oninput="syncCustomColor('ct_border',this.value)" style="flex:1;padding:4px 6px;border:1px solid #e2e5ec;border-radius:5px;font-size:11px;font-family:'DM Mono',monospace;">
+              </div>
+            </label>
+            <label style="font-size:11px;color:#475569;">
+              <div style="margin-bottom:4px;font-weight:600;">Ticker / faixa</div>
+              <div style="display:flex;align-items:center;gap:6px;">
+                <input type="color" id="ct_ticker" value="#1a3a6b" oninput="previewCustomTheme()" style="width:36px;height:28px;border-radius:5px;border:1px solid #e2e5ec;cursor:pointer;padding:2px;">
+                <input type="text" id="ct_ticker_txt" maxlength="7" value="#1a3a6b" oninput="syncCustomColor('ct_ticker',this.value)" style="flex:1;padding:4px 6px;border:1px solid #e2e5ec;border-radius:5px;font-size:11px;font-family:'DM Mono',monospace;">
+              </div>
+            </label>
+          </div>
+          <button onclick="applyCustomTheme()" style="width:100%;padding:10px;border-radius:8px;border:none;background:#1a3a6b;color:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">✓ Aplicar tema customizado</button>
+        </div>
+      </div>
     </div>
 
     <!-- ── BLOCOS ─────────────────────────────────── -->
@@ -402,6 +545,16 @@ body{font-family:'DM Sans',sans-serif;background:#F0F2F5;color:#1a1d23;font-size
       <div id="blocosLista" style="display:flex;flex-direction:column;gap:8px;"></div>
       <div style="margin-top:14px;padding:10px;background:#eff6ff;border-radius:8px;font-size:11px;color:#1e40af;">
         💡 Arraste os blocos para reordenar na tela
+      </div>
+
+      <!-- Colunas do estoque madeira -->
+      <div style="margin-top:18px;">
+        <div style="font-size:12px;font-weight:600;color:#475569;margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px;">🌿 Colunas — Estoque Madeira</div>
+        <div style="display:flex;flex-direction:column;gap:6px;" id="woodColsToggle"></div>
+        <div style="margin-top:8px;display:flex;gap:6px;">
+          <button onclick="setAllWoodCols(true)" style="flex:1;padding:7px;border-radius:6px;border:1px solid #e2e5ec;background:#fff;font-size:11px;cursor:pointer;font-family:inherit;">✓ Todas</button>
+          <button onclick="setAllWoodCols(false)" style="flex:1;padding:7px;border-radius:6px;border:1px solid #e2e5ec;background:#fff;font-size:11px;cursor:pointer;font-family:inherit;">✗ Ocultar opcionais</button>
+        </div>
       </div>
 
       <div style="margin-top:18px;">
@@ -509,7 +662,7 @@ body{font-family:'DM Sans',sans-serif;background:#F0F2F5;color:#1a1d23;font-size
           </div>
         </div>
         <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:#f8f9fb;border-radius:8px;border:1px solid #e2e5ec;">
-          <span style="font-size:12px;font-weight:500;color:#1a1d23;">🌿 SteelPort · Estoque</span>
+          <span style="font-size:12px;font-weight:500;color:#1a1d23;">🌿 Estoque Madeira · Armazéns</span>
           <div style="display:flex;align-items:center;gap:8px;">
             <button onclick="adjBlockFont('steel',-1)" style="width:24px;height:24px;border-radius:50%;border:1px solid #e2e5ec;background:#fff;cursor:pointer;font-size:14px;line-height:1;display:flex;align-items:center;justify-content:center;">−</button>
             <span id="steelFontSz" style="font-size:12px;font-weight:600;color:#1a3a6b;min-width:28px;text-align:center;">12px</span>
@@ -897,11 +1050,12 @@ let _naviosSort={col:'berco',dir:'asc'};
 let _nCols = [
   {key:'num',    label:'#',         w:24,  flex:false, nosort:true},
   {key:'berco',  label:'Bç',        w:44,  flex:false},
-  {key:'navio',  label:'Navio',     w:160, flex:true},
-  {key:'carga',  label:'Carga',     w:110, flex:true},
-  {key:'pct',    label:'Progresso', w:90,  flex:false},
-  {key:'media24h',label:'Méd. 24h', w:72,  flex:false},
-  {key:'inicio', label:'Início',    w:72,  flex:false},
+  {key:'navio',  label:'Navio',     w:150, flex:true},
+  {key:'carga',  label:'Carga',     w:100, flex:true},
+  {key:'pct',    label:'Progresso', w:86,  flex:false},
+  {key:'saldo',  label:'Saldo',     w:72,  flex:false},
+  {key:'media24h',label:'Últ. 24h', w:72,  flex:false},
+  {key:'inicio', label:'Início',    w:66,  flex:false},
 ];
 
 function applyNColWidths(){
@@ -978,6 +1132,7 @@ function renderNavios(navios){
 }
 
 function calcMedia24h(v){
+  // Retorna toneladas retiradas nas últimas 24h (não t/h)
   const pesoReal=parseFloat(v.peso_real||0);
   if(!pesoReal) return 0;
   let dtUpd=null;
@@ -988,9 +1143,10 @@ function calcMedia24h(v){
   const m2=((v.inicio||'')).match(/(\d{2})\/(\d{2})\/(\d{4})(?:\s+(\d{2}):(\d{2}))?/);
   if(m2) dtIni=new Date(+m2[3],+m2[2]-1,+m2[1],+(m2[4]||0),+(m2[5]||0));
   if(!dtIni) return 0;
-  const horasTotal=Math.max((dtUpd-dtIni)/3600000,1);
-  const horasCalc=Math.min(horasTotal,24);
-  return Math.round((pesoReal*(horasCalc/horasTotal))/horasCalc);
+  const horasTotal=Math.max((dtUpd-dtIni)/3600000,0.1);
+  // Peso retirado nas últimas 24h = taxa média/hora × 24h (cap em horasTotal)
+  const horas24=Math.min(horasTotal,24);
+  return Math.round(pesoReal*(horas24/horasTotal));
 }
 
 function renderNaviosRows(navios){
@@ -999,7 +1155,7 @@ function renderNaviosRows(navios){
     const pct=p>0?Math.round(r/p*100):0;
     const fc=pct>=80?'pg':pct>=50?'pb2':pct>=20?'pa':'pr';
     const media=calcMedia24h(v);
-    const mCor=media>2000?'#22c55e':media>500?'#f59e0b':'#94a3b8';
+    const mCor=media>5000?'#22c55e':media>1000?'#f59e0b':'#94a3b8';
 
     const cellVal=(key)=>{
       switch(key){
@@ -1008,7 +1164,8 @@ function renderNaviosRows(navios){
         case 'navio': return `<div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${v.navio}</div><div style="font-size:10px;color:#94a3b8;">${v.operador||'—'}</div>`;
         case 'carga': return `<span style="font-size:11px;color:#475569;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${v.carga||'—'}</span>`;
         case 'pct': return `<div style="display:flex;justify-content:space-between;font-size:10px;color:#94a3b8;margin-bottom:2px;"><span>${pct}%</span><span>${fmtT(r)}</span></div><div class="pb"><div class="pf ${fc}" style="width:${pct}%"></div></div>`;
-        case 'media24h': return `<span style="font-size:11px;font-weight:600;color:${mCor};">${media>0?fmtN(media)+' t/h':'—'}</span>`;
+        case 'media24h': return `<span style="font-size:11px;font-weight:600;color:${mCor};" title="Peso total retirado nas últimas 24h">${media>0?fmtT(media):'—'}</span>`;
+        case 'saldo':  return `<span style="font-size:11px;font-weight:600;color:#0f766e;">${fmtT(v.peso_saldo||0)}</span>`;
         case 'inicio': return `<span style="font-size:10px;color:#94a3b8;">${(v.inicio||'').substring(0,10)}</span>`;
         default: return v[key]||'—';
       }
@@ -1371,6 +1528,8 @@ function renderLineupRows(navios){
   }).join('');
 
   applyColWidths();
+  // Reaplica estilo Seatrade após render (sobrepõe inline styles)
+  if(typeof applySeatradeStyle === 'function') applySeatradeStyle();
 }
 
 // ── Drag-reorder colunas ─────────────────────────────────
@@ -1458,7 +1617,7 @@ async function loadSteel(){
     const saldo = recebido.filter(r => !expSet.has(r.coil));
 
     document.getElementById('sUpd').textContent=`atualizado ${hm()} · ${recebido.length} rec. / ${expedidos.length} exp. / ${saldo.length} saldo`;
-    renderSteel(saldo);
+    renderSteel(saldo, recebido, expedidos); // recebido=todos, saldo=em pátio
   }catch(e){
     document.getElementById('sList').innerHTML=`<div style="padding:12px;font-size:11px;line-height:2;color:#7b8494;">
       <b style="color:#991b1b;">Erro: ${e.message}</b><br>
@@ -1473,310 +1632,443 @@ async function loadSteel(){
 // STEELPORT — colunas dinâmicas (resize + reorder)
 // Saldo = todos os registros na coilsdb (expedidos são removidos da tabela)
 // ════════════════════════════════════════════════════════
-let _steelData=[];
-let _steelSort={col:'peso',dir:'desc'};
+// ESTOQUE MADEIRA — dados da planilha / edição manual
+// ════════════════════════════════════════════════════════
 
-let _sCols = [
-  {key:'navio',  label:'Navio de Origem', w:140, flex:true},
-  {key:'peso',   label:'Saldo a Expedir', w:110, flex:false},
-  {key:'qtd',    label:'Bobinas', w:70,  flex:false},
-  {key:'pct',    label:'% Pátio', w:65,  flex:false},
+// Estrutura de dados do estoque
+// Cada entrada: {exportador, cmm, warehouse:{GLOBAL,PRATICO,GLOBAL2,LOGIMODAL}, customs:{PORTO,REDEX}}
+let _woodData = {
+  rows: [],         // linhas de exportadores
+  meta: {           // painel lateral
+    trucksPorTurno: 35,
+    totalTransferir: 0,
+    totalPorto: 0,
+  },
+  dataRef: '',      // data de referência
+};
+
+// Colunas da tabela
+const WOOD_COLS = [
+  {key:'exportador', label:'Exportador',  w:100, flex:true},
+  {key:'cmm',        label:'CMM',         w:52,  flex:false},
+  {key:'global',     label:'Global',      w:62,  flex:false, grupo:'wh'},
+  {key:'pratico',    label:'Prático',     w:62,  flex:false, grupo:'wh'},
+  {key:'global2',    label:'Global 2',    w:62,  flex:false, grupo:'wh'},
+  {key:'logimodal',  label:'Logimodal',   w:68,  flex:false, grupo:'wh'},
+  {key:'porto',      label:'Porto',       w:60,  flex:false, grupo:'ca'},
+  {key:'redex',      label:'Redex-TESC',  w:68,  flex:false, grupo:'ca'},
+  {key:'total',      label:'Total (cbm)', w:80,  flex:false, grupo:'tot'},
 ];
 
-function applySColWidths(){
-  const tpl=_sCols.map(c=>`${c.w}px`).join(' ');
-  document.querySelectorAll('.srow, #steelHead').forEach(el=>{
+// Visibilidade de colunas do estoque madeira (salvo no localStorage)
+let _woodColsVisible = JSON.parse(localStorage.getItem('wood_cols_vis') || 'null') ||
+  Object.fromEntries(WOOD_COLS.map(c=>[c.key, true]));
+
+function visibleWoodCols(){ return WOOD_COLS.filter(c=>_woodColsVisible[c.key]!==false); }
+
+function saveWoodColVis(){ localStorage.setItem('wood_cols_vis', JSON.stringify(_woodColsVisible)); }
+
+function fmtCbm(v){
+  if(!v && v!==0) return '—';
+  const n = parseFloat(v)||0;
+  if(!n) return '—';
+  return n.toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:1});
+}
+
+function applyWoodColWidths(){
+  const cols = visibleWoodCols();
+  const tpl = cols.map(c=>c.flex?'minmax(80px,1fr)':`${c.w}px`).join(' ');
+  document.querySelectorAll('.wood-head,.wood-row,.wood-tot').forEach(el=>{
     el.style.display='grid';
     el.style.gridTemplateColumns=tpl;
   });
-  const tot=document.getElementById('steelTotRow');
-  if(tot){ tot.style.display='grid'; tot.style.gridTemplateColumns=tpl; }
 }
 
-function renderSteelHead(){
-  const head=document.getElementById('steelHead');
-  head.className='shead-s';
-  head.innerHTML=_sCols.map((col,idx)=>{
-    const sc=_steelSort.col===col.key?_steelSort.dir:'';
-    return `<div class="sc ${sc}" data-sidx="${idx}"
-      draggable="true"
-      onclick="sortSteel('${col.key}')"
-      ondragstart="sColDragStart(event,${idx})"
-      ondragover="sColDragOver(event,${idx})"
-      ondrop="sColDrop(event,${idx})"
-      ondragleave="this.classList.remove('drag-over')">
-      ${col.label}
-      <div class="sresize" onmousedown="sColResizeStart(event,${idx})" onclick="event.stopPropagation()"></div>
+function renderWoodHead(){
+  const head = document.getElementById('woodHead');
+  if(!head) return;
+  head.className = 'wood-head';
+  head.innerHTML = visibleWoodCols().map(col=>{
+    const badge = col.grupo==='wh'?'wb-wh':col.grupo==='ca'?'wb-ca':col.grupo==='tot'?'wb-tot':'';
+    return `<div class="wc" style="position:relative;">
+      ${badge?`<span class="wood-badge ${badge}" style="font-size:8px;">${col.label}</span>`:col.label}
     </div>`;
   }).join('');
-  applySColWidths();
+  applyWoodColWidths();
 }
 
-function sortSteel(col){
-  if(_steelSort.col===col){_steelSort.dir=_steelSort.dir==='asc'?'desc':'asc';}
-  else{_steelSort.col=col;_steelSort.dir=col==='navio'?'asc':'desc';}
-  renderSteelHead();
-  renderSteelRows(sortedSteelData(_steelData));
-}
+function renderWoodRows(){
+  const body = document.getElementById('woodBody');
+  if(!body) return;
+  const rows = _woodData.rows;
 
-function sortedSteelData(gs){
-  const col=_steelSort.col, d=_steelSort.dir==='asc'?1:-1;
-  return [...gs].sort((a,b)=>{
-    if(col==='navio') return d*a.navio.localeCompare(b.navio,'pt-BR');
-    if(col==='pct') return d*(a.peso-b.peso); // pct é proporcional ao peso
-    const va=a[col]||0, vb=b[col]||0;
-    return d*(va-vb);
-  });
-}
+  if(!rows.length){
+    body.innerHTML='<div style="padding:14px 12px;color:#94a3b8;font-size:11px;">Nenhum dado disponível. Edite na planilha.</div>';
+    return;
+  }
 
-function renderSteel(rows){
-  const map={};
-  rows.forEach(r=>{
-    const n=(r.navio||'SEM NAVIO').toUpperCase().trim();
-    const p=parseFloat(String(r.pesob||0).replace(',','.'))||0;
-    if(!map[n])map[n]={navio:n,peso:0,qtd:0};
-    map[n].peso+=p; map[n].qtd++;
-  });
-  _steelData=Object.values(map);
-  const tP=_steelData.reduce((s,g)=>s+g.peso,0);
-  const tQ=_steelData.reduce((s,g)=>s+g.qtd,0);
-  document.getElementById('sCnt').textContent=fmtT(tP)+' · '+fmtN(tQ)+' bob.';
-  document.getElementById('mA').innerHTML=fmtT(tP);
-  document.getElementById('mAs').textContent=fmtN(_steelData.length)+' navios · saldo em pátio';
-  document.getElementById('mB').innerHTML=fmtN(tQ);
-  document.getElementById('mBs').textContent='bobinas em estoque';
-  renderSteelHead();
-  renderSteelRows(sortedSteelData(_steelData));
-  // Total row
-  const totEl=document.getElementById('steelTotRow');
-  totEl.innerHTML=_sCols.map((col,i)=>{
-    if(col.key==='navio') return `<div class="sc" style="font-size:10px;font-weight:700;color:#0f766e;">TOTAL EM PÁTIO</div>`;
-    if(col.key==='peso')  return `<div class="sc" style="font-size:11px;font-weight:700;text-align:right;">${fmtT(tP)}</div>`;
-    if(col.key==='qtd')   return `<div class="sc" style="font-size:11px;font-weight:700;text-align:right;">${fmtN(tQ)}</div>`;
-    return `<div class="sc"></div>`;
-  }).join('');
-  applySColWidths();
-}
-
-function renderSteelRows(gs){
-  const tP=gs.reduce((s,g)=>s+g.peso,0)||1;
-  document.getElementById('sList').innerHTML=gs.map(g=>{
-    const pct=Math.round(g.peso/tP*100);
-    const cells=_sCols.map(col=>{
-      switch(col.key){
-        case 'navio': return `<div class="sc"><span class="nt" title="${g.navio}">${g.navio}</span></div>`;
-        case 'peso':  return `<div class="sc" style="font-size:12px;font-weight:600;text-align:right;color:#1a1d23;">${fmtT(g.peso)}</div>`;
-        case 'qtd':   return `<div class="sc" style="font-size:12px;text-align:right;">${fmtN(g.qtd)}</div>`;
-        case 'pct':   return `<div class="sc" style="text-align:center;"><div style="height:4px;background:#f1f5f9;border-radius:2px;overflow:hidden;"><div style="height:100%;background:#0d9488;border-radius:2px;width:${pct}%"></div></div><div style="font-size:10px;color:#94a3b8;margin-top:2px;">${pct}%</div></div>`;
-        default:      return `<div class="sc">${g[col.key]||'—'}</div>`;
+  body.innerHTML = rows.map((r,i)=>{
+    const isGroup = r._group;
+    const cls = isGroup ? 'wood-row wood-group' : 'wood-row';
+    return `<div class="${cls}">` + visibleWoodCols().map(col=>{
+      if(col.key==='exportador') return `<div class="wc" title="${r.exportador||''}" style="font-size:${isGroup?12:11}px;">${r.exportador||'—'}</div>`;
+      if(col.key==='cmm') return `<div class="wc" style="font-size:10px;color:#475569;">${r.cmm||'—'}</div>`;
+      if(col.key==='total'){
+        const tot = (r.global||0)+(r.pratico||0)+(r.global2||0)+(r.logimodal||0)+(r.porto||0)+(r.redex||0);
+        return `<div class="wc" style="font-size:12px;font-weight:700;color:#065f46;text-align:right;">${tot>0?fmtCbm(tot):'—'}</div>`;
       }
-    }).join('');
-    return `<div class="srow">${cells}</div>`;
+      const v = r[col.key];
+      const cor = col.grupo==='wh'?'#1e40af':col.grupo==='ca'?'#92400e':'#065f46';
+      return `<div class="wc" style="font-size:11px;text-align:right;color:${v>0?cor:'#94a3b8'};">${fmtCbm(v)}</div>`;
+    }).join('') + '</div>';
   }).join('');
-  applySColWidths();
+
+  // Linha de total
+  const tot = document.getElementById('woodTot');
+  if(tot){
+    const totals = {};
+    ['global','pratico','global2','logimodal','porto','redex'].forEach(k=>{
+      totals[k] = rows.reduce((s,r)=>s+(r[k]||0),0);
+    });
+    const tTot = Object.values(totals).reduce((s,v)=>s+v,0);
+
+    tot.className='wood-tot';
+    tot.innerHTML = visibleWoodCols().map(col=>{
+      if(col.key==='exportador') return `<div class="wc">TOTAL</div>`;
+      if(col.key==='cmm') return `<div class="wc"></div>`;
+      if(col.key==='total') return `<div class="wc" style="text-align:right;color:#065f46;">${fmtCbm(tTot)}</div>`;
+      return `<div class="wc" style="text-align:right;">${fmtCbm(totals[col.key])}</div>`;
+    }).join('');
+    tot.style.display='grid';
+    applyWoodColWidths();
+
+    // Painel lateral de totais
+    const wh = (totals.global||0)+(totals.pratico||0)+(totals.global2||0)+(totals.logimodal||0);
+    const ca = (totals.porto||0)+(totals.redex||0);
+    document.getElementById('woodTotal').textContent = fmtCbm(tTot) + ' cbm';
+  }
 }
 
-// Drag-reorder steel
-let _sDragSrc=null;
-function sColDragStart(e,idx){_sDragSrc=idx;e.dataTransfer.effectAllowed='move';}
-function sColDragOver(e,idx){
-  e.preventDefault();
-  document.querySelectorAll('#steelHead .sc').forEach((el,i)=>{
-    el.classList.toggle('drag-over',i===idx&&i!==_sDragSrc);
-  });
-}
-function sColDrop(e,idx){
-  e.preventDefault();
-  document.querySelectorAll('#steelHead .sc').forEach(el=>el.classList.remove('drag-over'));
-  if(_sDragSrc===null||_sDragSrc===idx) return;
-  const moved=_sCols.splice(_sDragSrc,1)[0];
-  _sCols.splice(idx,0,moved);
-  _sDragSrc=null;
-  renderSteelHead();
-  renderSteelRows(sortedSteelData(_steelData));
-}
+// ── Carrega/inicializa dados ──────────────────────────────
+// URL do arquivo no SharePoint (link público de visualização)
+// ── Cloudflare Worker que faz proxy do SharePoint (sem CORS) ──
+// Após criar o worker, coloque a URL correta aqui:
+const WOOD_WORKER_URL = 'https://wood-proxy.luancarloo.workers.dev';
 
-// Resize steel
-let _sResizeState=null;
-function sColResizeStart(e,idx){
-  e.preventDefault();e.stopPropagation();
-  _sResizeState={idx,startX:e.clientX,startW:_sCols[idx].w};
-  e.target.classList.add('dragging');
-  const onMove=ev=>{
-    const delta=ev.clientX-_sResizeState.startX;
-    _sCols[_sResizeState.idx].w=Math.max(40,_sResizeState.startW+delta);
-    applySColWidths();
-  };
-  const onUp=()=>{
-    document.querySelector('.sresize.dragging')?.classList.remove('dragging');
-    _sResizeState=null;
-    document.removeEventListener('mousemove',onMove);
-    document.removeEventListener('mouseup',onUp);
-  };
-  document.addEventListener('mousemove',onMove);
-  document.addEventListener('mouseup',onUp);
-}
+async function loadWood(){
+  const btn=event?.target; if(btn){btn.innerHTML='<span class="sp">↻</span>';btn.disabled=true;}
+  let loaded = false;
 
+  // Carrega SheetJS se necessário
+  await ensureXLSX();
 
+  // Estratégia 1: busca via Cloudflare Worker (sem bloqueio CORS)
+  if(!loaded){
+    try{
+      const r = await fetch(WOOD_WORKER_URL);
+      if(r.ok){
+        const buf = await r.arrayBuffer();
+        const rows = parseWoodExcel(buf);
+        if(rows && rows.length){
+          _woodData.rows = rows;
+          _woodData.dataRef = new Date().toLocaleDateString('pt-BR');
+          localStorage.setItem('wood_data', JSON.stringify(_woodData));
+          renderWoodHead(); renderWoodRows();
+          document.getElementById('woodUpd').textContent = 'atualizado ' + hm();
+          loaded = true;
+        }
+      }
+    }catch(e){ console.warn('Wood worker:', e.message); }
+  }
 
-// ── CLIMA ────────────────────────────────────────────────
-async function loadClima(){
-  try{
-    const r=await fetch('https://api.open-meteo.com/v1/forecast?latitude=-26.2293&longitude=-48.6411&current=temperature_2m,relative_humidity_2m,wind_speed_10m,wind_direction_10m,surface_pressure,apparent_temperature,weather_code,visibility,precipitation&daily=temperature_2m_max,temperature_2m_min,weather_code,precipitation_sum,wind_speed_10m_max,uv_index_max&timezone=America%2FSao_Paulo&forecast_days=7');
-    const d=await r.json(),c=d.current;
-    const desc={0:'Céu limpo',1:'Limpo',2:'Parc. nublado',3:'Nublado',45:'Neblina',51:'Chuvisco',61:'Chuva fraca',63:'Chuva',80:'Pancadas',95:'Tempestade'};
-    document.getElementById('wT').textContent=Math.round(c.temperature_2m)+'°C';
-    document.getElementById('wD').textContent=desc[c.weather_code]||'Variável';
-    document.getElementById('wF').textContent=Math.round(c.apparent_temperature)+'°C';
-    // Direção do vento
-    const windDir=['N','NE','L','SE','S','SO','O','NO'];
-    const wdIdx=Math.round((c.wind_direction_10m||0)/45)%8;
-    document.getElementById('wW').textContent=Math.round(c.wind_speed_10m)+' km/h '+windDir[wdIdx];
-    document.getElementById('wH').textContent=c.relative_humidity_2m+'%';
-    document.getElementById('wV').textContent=c.visibility?(c.visibility/1000).toFixed(0)+' km':'—';
-    document.getElementById('wP').textContent=Math.round(c.surface_pressure)+' hPa';
-    // Chuva atual
-    const chuvaEl=document.getElementById('wChuva');
-    if(chuvaEl) chuvaEl.textContent=(c.precipitation||0).toFixed(1)+' mm';
-    document.getElementById('climaUpd').textContent=hm();
-    const ic={0:'☀️',1:'🌤',2:'⛅',3:'☁️',45:'🌫',51:'🌧',61:'🌧',63:'🌧',80:'🌦',95:'⛈'};
-    const dn=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
-    document.getElementById('fc').innerHTML=d.daily.temperature_2m_max.map((mx,i)=>{
-      const dt=new Date(d.daily.time[i]+'T12:00:00');
-      const chuva=d.daily.precipitation_sum?.[i]||0;
-      const uv=d.daily.uv_index_max?.[i]||0;
-      const uvCor=uv>=8?'#ef4444':uv>=6?'#f59e0b':uv>=3?'#eab308':'#22c55e';
-      return`<div style="text-align:center;padding:2px;">
-        <div style="font-size:9px;color:#94a3b8;font-weight:600;">${i===0?'Hoje':dn[dt.getDay()]}</div>
-        <div style="font-size:14px;margin:1px 0;">${ic[d.daily.weather_code[i]]||'🌡'}</div>
-        <div style="font-size:11px;font-weight:600;">${Math.round(mx)}°</div>
-        <div style="font-size:9px;color:#94a3b8;">${Math.round(d.daily.temperature_2m_min[i])}°</div>
-        ${chuva>0?`<div style="font-size:9px;color:#3b82f6;">💧${chuva.toFixed(0)}mm</div>`:''}
-        <div style="font-size:8px;color:${uvCor};">UV ${uv.toFixed(0)}</div>
+  // Estratégia 2: cache do localStorage (se worker falhar)
+  if(!loaded){
+    try{
+      const saved = localStorage.getItem('wood_data');
+      if(saved){
+        _woodData = JSON.parse(saved);
+        renderWoodHead(); renderWoodRows();
+        document.getElementById('woodUpd').textContent = (_woodData.dataRef||'') + ' (cache)';
+        loaded = true;
+      }
+    }catch(e){}
+  }
+
+  // Nenhuma estratégia funcionou
+  if(!loaded){
+    document.getElementById('woodBody').innerHTML = `
+      <div style="padding:14px 12px;">
+        <div style="font-size:12px;font-weight:600;color:#92400e;margin-bottom:8px;">⚠ Planilha não carregada</div>
+        <div style="font-size:11px;color:#94a3b8;margin-bottom:12px;">
+          Proxy indisponível. Carregue o arquivo Excel diretamente ou insira os dados manualmente.
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <label style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;border:2px dashed #10b981;cursor:pointer;background:#f0fdf4;">
+            <span style="font-size:18px;">📂</span>
+            <div>
+              <div style="font-size:12px;font-weight:600;color:#065f46;">Carregar planilha Excel (.xlsx)</div>
+              <div style="font-size:10px;color:#6b7280;">Selecione o arquivo do computador</div>
+            </div>
+            <input type="file" accept=".xlsx,.xls" style="display:none;" onchange="loadWoodFromFile(this)">
+          </label>
+          <button onclick="openWoodEditor()" style="padding:9px 14px;border-radius:7px;border:1px solid #e2e5ec;background:#fff;color:#475569;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">
+            ✏ Inserir dados manualmente
+          </button>
+        </div>
       </div>`;
-    }).join('');
-  }catch(e){document.getElementById('wT').textContent='--°C';}
+    renderWoodHead();
+    document.getElementById('woodUpd').textContent = 'sem conexão';
+  }
+  if(btn){btn.innerHTML='↻';btn.disabled=false;}
 }
 
-// ── CÂMBIO ───────────────────────────────────────────────
-async function loadCambio(){
-  // Tenta múltiplas APIs públicas de câmbio por ordem de confiabilidade
-  let usd=null, eur=null;
+// Parse do Excel usando SheetJS (carregado dinamicamente)
+async function ensureXLSX(){
+  if(typeof XLSX !== 'undefined') return true;
+  return new Promise(res=>{
+    const s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+    s.onload = ()=>res(true);
+    s.onerror = ()=>res(false);
+    document.head.appendChild(s);
+  });
+}
 
-  // API 1: exchangerate-api (sem chave, CORS liberado)
+function parseWoodExcel(buffer){
   try{
-    const r=await fetch('https://open.er-api.com/v6/latest/USD');
-    if(r.ok){const d=await r.json(); usd=d.rates?.BRL; eur=usd&&d.rates?.EUR?(usd/d.rates.EUR):null;}
-  }catch(e){}
+    if(typeof XLSX === 'undefined') return null;
+    const wb = XLSX.read(new Uint8Array(buffer), {type:'array'});
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    const data = XLSX.utils.sheet_to_json(ws, {header:1, defval:null});
 
-  // API 2: fawazahmed0 (backup)
-  if(!usd){
-    try{
-      const r=await fetch('https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/usd.json');
-      if(r.ok){const d=await r.json(); usd=d.usd?.brl;}
-    }catch(e){}
-    try{
-      const r=await fetch('https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/eur.json');
-      if(r.ok){const d=await r.json(); eur=d.eur?.brl;}
-    }catch(e){}
-  }
+    // Detecta linha de colunas (contém GLOBAL, PRÁTICO etc.)
+    let colRow = -1;
+    for(let i=0;i<data.length;i++){
+      const row = (data[i]||[]).map(v=>String(v||'').toUpperCase().trim());
+      if(row.some(v=>v==='GLOBAL'||v.includes('PRÁTICO')||v.includes('PRATICO'))){
+        colRow = i; break;
+      }
+    }
+    if(colRow < 0) return null;
 
-  // API 3: allorigins + frankfurter (último recurso)
-  if(!usd){
-    try{
-      const r=await fetch('https://api.allorigins.win/raw?url='+encodeURIComponent('https://api.frankfurter.app/latest?from=USD&to=BRL'));
-      if(r.ok){const d=await r.json(); usd=d.rates?.BRL;}
-    }catch(e){}
-    try{
-      const r=await fetch('https://api.allorigins.win/raw?url='+encodeURIComponent('https://api.frankfurter.app/latest?from=EUR&to=BRL'));
-      if(r.ok){const d=await r.json(); eur=d.rates?.BRL;}
-    }catch(e){}
-  }
+    const cols = (data[colRow]||[]).map(v=>String(v||'').toUpperCase().trim());
+    const idx = {
+      global:    cols.findIndex(v=>v==='GLOBAL'),
+      pratico:   cols.findIndex(v=>v.includes('PRÁT')||v.includes('PRAT')),
+      global2:   (() => { let f=cols.findIndex(v=>v==='GLOBAL'); return cols.findIndex((v,i)=>v==='GLOBAL'&&i>f); })(),
+      logimodal: cols.findIndex(v=>v.includes('LOGIM')),
+      porto:     cols.findIndex(v=>v==='PORTO'),
+      redex:     cols.findIndex(v=>v.includes('REDEX')),
+      exp:       cols.findIndex(v=>v.includes('EXPORT')||v==='CMM'),
+    };
 
-  if(usd){
-    document.getElementById('cambioList').innerHTML=`
-      <div class="cbr"><span class="cpair">USD/BRL</span><div><div class="cval">R$ ${usd.toFixed(3)}</div><div class="csub">Dólar comercial</div></div></div>
-      <div class="cbr"><span class="cpair">EUR/BRL</span><div><div class="cval">R$ ${eur?eur.toFixed(3):'—'}</div><div class="csub">Euro comercial</div></div></div>
-      <div class="cbr"><span style="font-size:10px;color:#94a3b8;">Frete SFS→US Gulf</span><div><div style="font-size:13px;font-weight:500;" class="mono">USD 14.80/m³</div><div class="csub">Referência</div></div></div>`;
-    document.getElementById('cambioUpd').textContent=hm();
-  }else{
-    document.getElementById('cambioList').innerHTML='<div style="font-size:11px;color:#94a3b8;padding:5px 0;">Câmbio indisponível</div>';
-  }
+    const rows = [];
+    for(let i=colRow+1; i<data.length; i++){
+      const row = data[i]||[];
+      // Coluna exportador: tenta col B(1), C(2) ou D(3)
+      const exp = String(row[2]||row[1]||'').trim();
+      const cmm = String(row[3]||'').trim();
+      if(!exp) continue;
+      if(exp.toUpperCase().includes('TOTAL')) break;
+      const num = k => idx[k]>=0 ? (parseFloat(row[idx[k]])||0) : 0;
+      const hasData = ['global','pratico','global2','logimodal','porto','redex'].some(k=>num(k)>0);
+      if(!hasData && !exp) continue;
+      rows.push({ exportador:exp, cmm:cmm!==exp?cmm:'',
+        global:num('global'), pratico:num('pratico'), global2:num('global2'),
+        logimodal:num('logimodal'), porto:num('porto'), redex:num('redex') });
+    }
+    return rows.length ? rows : null;
+  }catch(e){ return null; }
 }
 
-// ── MARÉ ─────────────────────────────────────────────────
-function loadMare(){
-  const h=new Date().getHours();
-  const tides=[{t:'02:30',v:'0.45m',tp:'Baixa-mar'},{t:'08:50',v:'1.38m',tp:'Preamar'},{t:'15:10',v:'0.52m',tp:'Baixa-mar'},{t:'21:30',v:'1.41m',tp:'Preamar'}];
-  document.getElementById('tideList').innerHTML=tides.map(td=>{
-    const p=parseInt(td.t)<h;
-    return`<div class="tr" style="${p?'opacity:.4':''}"><span>${p?'✓ ':''}<b>${td.tp}</b></span><span class="mono">${td.t} · ${td.v}</span></div>`;
-  }).join('');
+// ── Editor de dados ───────────────────────────────────────
+function openWoodEditor(){
+  const modal = document.getElementById('woodEditorModal');
+  if(modal){ modal.style.display='flex'; syncWoodEditor(); return; }
+
+  // Cria modal de edição
+  const div = document.createElement('div');
+  div.id = 'woodEditorModal';
+  div.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:2000;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(3px);';
+  div.innerHTML = `
+    <div style="background:#fff;border-radius:12px;width:680px;max-height:90vh;display:flex;flex-direction:column;overflow:hidden;font-family:inherit;">
+      <div style="padding:14px 18px;background:#10b981;color:#fff;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;">
+        <div style="font-size:14px;font-weight:600;">🌿 Estoque Madeira · Inserir dados</div>
+        <button onclick="document.getElementById('woodEditorModal').style.display='none'" style="background:rgba(255,255,255,.2);border:none;color:#fff;width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:14px;">✕</button>
+      </div>
+
+      <div style="padding:12px 18px;border-bottom:1px solid #e2e5ec;flex-shrink:0;background:#f0fdf4;">
+        <label style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:8px;border:2px dashed #10b981;cursor:pointer;background:#fff;">
+          <span style="font-size:16px;">📂</span>
+          <div style="flex:1;">
+            <div style="font-size:11px;font-weight:600;color:#065f46;">Carregar planilha Excel (.xlsx)</div>
+            <div style="font-size:10px;color:#94a3b8;">Importa os dados automaticamente</div>
+          </div>
+          <input type="file" accept=".xlsx,.xls" style="display:none;" onchange="loadWoodFromFile(this);document.getElementById('woodEditorModal').style.display='none';">
+        </label>
+      </div>
+      <div style="padding:10px 18px;border-bottom:1px solid #e2e5ec;flex-shrink:0;">
+        <div style="display:flex;gap:10px;align-items:center;">
+          <label style="font-size:11px;font-weight:600;color:#475569;">Data de referência:</label>
+          <input type="date" id="woodDate" style="padding:4px 8px;border:1px solid #e2e5ec;border-radius:5px;font-size:11px;font-family:inherit;">
+          <label style="font-size:11px;font-weight:600;color:#475569;margin-left:8px;">Caminhões/turno:</label>
+          <input type="number" id="woodTrucks" value="35" style="width:60px;padding:4px 8px;border:1px solid #e2e5ec;border-radius:5px;font-size:11px;font-family:inherit;">
+        </div>
+      </div>
+
+      <div style="flex:1;overflow-y:auto;padding:14px 18px;">
+        <div style="font-size:11px;font-weight:600;color:#475569;margin-bottom:10px;text-transform:uppercase;letter-spacing:.4px;">Linhas de estoque</div>
+        <div id="woodRows" style="display:flex;flex-direction:column;gap:8px;"></div>
+        <button onclick="addWoodRow()" style="margin-top:10px;padding:7px 14px;border-radius:6px;border:1px dashed #10b981;background:transparent;color:#10b981;font-size:11px;cursor:pointer;font-family:inherit;width:100%;">+ Adicionar linha</button>
+      </div>
+
+      <div style="padding:12px 18px;border-top:1px solid #e2e5ec;display:flex;gap:8px;flex-shrink:0;background:#f8f9fb;">
+        <button onclick="clearWoodData()" style="padding:8px 12px;border-radius:7px;border:1px solid #e2e5ec;background:#fff;font-size:11px;color:#ef4444;cursor:pointer;font-family:inherit;">🗑 Limpar</button>
+        <div style="flex:1;"></div>
+        <button onclick="saveWoodData()" style="padding:8px 18px;border-radius:7px;border:none;background:#10b981;color:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">✓ Salvar</button>
+      </div>
+    </div>`;
+  document.body.appendChild(div);
+  syncWoodEditor();
 }
 
-// ── TICKER ───────────────────────────────────────────────
-function buildTicker(){
-  const items=['🚢 Porto de São Francisco do Sul · Dashboard Operacional'];
-  document.querySelectorAll('.nrow').forEach(r=>{
-    const b=r.querySelector('.bt')?.textContent||'';
-    const n=r.querySelector('[style*="font-weight:500"]')?.textContent||'';
-    if(n)items.push(`🚢 ${b} · ${n}`);
+function syncWoodEditor(){
+  // Data
+  const today = new Date().toISOString().substring(0,10);
+  const di = document.getElementById('woodDate');
+  if(di) di.value = _woodData.dataRef || today;
+  const ti = document.getElementById('woodTrucks');
+  if(ti) ti.value = _woodData.meta?.trucksPorTurno || 35;
+
+  // Linhas
+  renderWoodEditorRows();
+}
+
+function renderWoodEditorRows(){
+  const cont = document.getElementById('woodRows');
+  if(!cont) return;
+  const rows = _woodData.rows.length ? _woodData.rows : [
+    {exportador:'GLOBAL PRIME',cmm:'PINUS',global:0,pratico:0,global2:0,logimodal:0,porto:0,redex:0},
+    {exportador:'GUARARAPES',cmm:'MDF',global:0,pratico:0,global2:0,logimodal:0,porto:0,redex:0},
+    {exportador:'GUARARAPES',cmm:'SWPLY',global:0,pratico:0,global2:0,logimodal:0,porto:0,redex:0},
+  ];
+
+  const fields = [
+    {key:'exportador',label:'Exportador',type:'text',w:'110px'},
+    {key:'cmm',label:'CMM',type:'text',w:'70px'},
+    {key:'global',label:'Global',type:'number',w:'70px'},
+    {key:'pratico',label:'Prático',type:'number',w:'70px'},
+    {key:'global2',label:'Global 2',type:'number',w:'70px'},
+    {key:'logimodal',label:'Logimodal',type:'number',w:'70px'},
+    {key:'porto',label:'Porto',type:'number',w:'70px'},
+    {key:'redex',label:'Redex',type:'number',w:'70px'},
+  ];
+
+  cont.innerHTML = `
+    <div style="display:flex;gap:5px;padding:4px 0;border-bottom:1px solid #e2e5ec;margin-bottom:4px;">
+      ${fields.map(f=>`<div style="font-size:9px;font-weight:600;color:#94a3b8;width:${f.w};flex-shrink:0;text-transform:uppercase;">${f.label}</div>`).join('')}
+      <div style="width:24px;"></div>
+    </div>
+    ${rows.map((r,i)=>`
+    <div style="display:flex;gap:5px;align-items:center;" data-wood-row="${i}">
+      ${fields.map(f=>`<input type="${f.type}" value="${r[f.key]||''}"
+        data-row="${i}" data-field="${f.key}"
+        onchange="updateWoodRow(${i},'${f.key}',this.value)"
+        style="width:${f.w};flex-shrink:0;padding:4px 5px;border:1px solid #e2e5ec;border-radius:4px;font-size:11px;font-family:inherit;text-align:${f.type==='number'?'right':'left'};">`).join('')}
+      <button onclick="removeWoodRow(${i})" style="width:24px;height:24px;border-radius:4px;border:1px solid #fecaca;background:#fff;color:#ef4444;cursor:pointer;font-size:12px;flex-shrink:0;">✕</button>
+    </div>`).join('')}`;
+}
+
+function updateWoodRow(i, field, val){
+  if(!_woodData.rows.length){
+    _woodData.rows = [
+      {exportador:'GLOBAL PRIME',cmm:'PINUS',global:0,pratico:0,global2:0,logimodal:0,porto:0,redex:0},
+      {exportador:'GUARARAPES',cmm:'MDF',global:0,pratico:0,global2:0,logimodal:0,porto:0,redex:0},
+      {exportador:'GUARARAPES',cmm:'SWPLY',global:0,pratico:0,global2:0,logimodal:0,porto:0,redex:0},
+    ];
+  }
+  if(!_woodData.rows[i]) _woodData.rows[i] = {};
+  _woodData.rows[i][field] = isNaN(val) || val==='' ? val : parseFloat(val)||0;
+}
+
+function addWoodRow(){
+  if(!_woodData.rows.length) _woodData.rows = [];
+  _woodData.rows.push({exportador:'',cmm:'',global:0,pratico:0,global2:0,logimodal:0,porto:0,redex:0});
+  renderWoodEditorRows();
+}
+
+function removeWoodRow(i){
+  _woodData.rows.splice(i,1);
+  renderWoodEditorRows();
+}
+
+function saveWoodData(){
+  // Coleta dados do editor
+  const dateEl = document.getElementById('woodDate');
+  const trucksEl = document.getElementById('woodTrucks');
+  _woodData.dataRef = dateEl?.value || new Date().toISOString().substring(0,10);
+  _woodData.meta.trucksPorTurno = parseFloat(trucksEl?.value)||35;
+
+  // Re-lê todos os inputs
+  const rowEls = document.querySelectorAll('[data-wood-row]');
+  rowEls.forEach(rowEl=>{
+    const i = parseInt(rowEl.dataset.woodRow);
+    rowEl.querySelectorAll('input').forEach(inp=>{
+      const field = inp.dataset.field;
+      const val = inp.value;
+      if(field && _woodData.rows[i]!==undefined){
+        _woodData.rows[i][field] = inp.type==='number'?(parseFloat(val)||0):val;
+      }
+    });
   });
-  document.querySelectorAll('.lrow').forEach(r=>{
-    const v=r.querySelectorAll('div')[1]?.textContent?.trim()||'';
-    const b=r.querySelector('.bs')?.textContent||'';
-    const e=r.querySelectorAll('div')[3]?.textContent?.trim()||'';
-    if(v&&e)items.push(`⚓ Berço ${b} · ${v} · ETB ${e}`);
-  });
-  const txt=items.join('<span class="ticker-sep">|</span>');
-  document.getElementById('ticker').innerHTML=txt+'<span class="ticker-sep">|</span>'+txt;
+
+  localStorage.setItem('wood_data', JSON.stringify(_woodData));
+  document.getElementById('woodEditorModal').style.display='none';
+  renderWoodHead();
+  renderWoodRows();
+  document.getElementById('woodUpd').textContent = _woodData.dataRef;
 }
 
-// ── INIT ─────────────────────────────────────────────────
-loadMare(); loadClima(); loadCambio();
-loadNavios(); loadLineup(); loadSteel();
-
-setInterval(loadClima,    10*60*1000);
-setInterval(loadCambio,    5*60*1000);
-setInterval(loadMare,         60*1000);
-setInterval(loadNavios,    5*60*1000);
-setInterval(loadLineup,   10*60*1000);
-setInterval(loadSteel,     5*60*1000);
-
-
-// ════════════════════════════════════════════════════════
-// SISTEMA DE CONFIGURAÇÃO
-// ════════════════════════════════════════════════════════
-const CFG_KEY = 'portosfs_cfg';
-let _cfg = {
-  theme:'light', accent:'#1a3a6b', fontFamily:'DM Sans',
-  fontSize:13, lineHeight:1.5, borderRadius:'8px',
-  gap:8, pad:8, ticker:true, shadow:false,
-  layout:'1fr 1fr 290px',
-  blocos:[
-    {id:'navios', label:'Navios Operando',          visible:true, rot:true},
-    {id:'lineup', label:'Programação de Navios',    visible:true, rot:true},
-    {id:'rcol',   label:'Condições / Câmbio / Maré',visible:true, rot:true},
-    {id:'steel',  label:'SteelPort · Estoque',      visible:true, rot:true},
-  ],
-  rotTimer:10, rotActive:false,
-  bercosFiltro: null, // null = todos; array de strings = filtro ativo
-};
-
-function getBlocoEl(id){
-  if(id==='navios') return document.querySelector('.grid > .card:nth-child(1)');
-  if(id==='lineup') return document.querySelector('.grid > .card:nth-child(2)');
-  if(id==='rcol')   return document.querySelector('.grid > .rcol');
-  if(id==='steel')  return document.querySelector('.grid > .card:nth-child(4)');
-  return null;
+function clearWoodData(){
+  if(!confirm('Limpar todos os dados do estoque?')) return;
+  _woodData = {rows:[], meta:{trucksPorTurno:35}, dataRef:''};
+  localStorage.removeItem('wood_data');
+  renderWoodEditorRows();
 }
 
-function loadCfg(){
-  try{ const s=localStorage.getItem(CFG_KEY); if(s) _cfg={..._cfg,...JSON.parse(s)}; }catch(e){}
+async function loadWoodFromFile(input){
+  if(!input.files || !input.files.length) return;
+  const file = input.files[0];
+  input.value = '';
+  await ensureXLSX();
+  if(typeof XLSX === 'undefined'){
+    alert('Erro ao carregar leitor de Excel. Verifique a conexão com a internet.');
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = function(e){
+    const rows = parseWoodExcel(e.target.result);
+    if(rows && rows.length){
+      _woodData.rows = rows;
+      _woodData.dataRef = new Date().toLocaleDateString('pt-BR');
+      localStorage.setItem('wood_data', JSON.stringify(_woodData));
+      renderWoodHead(); renderWoodRows();
+      const total = _woodData.rows.reduce((s,r)=>{
+        if(r._group) return s;
+        return s+(r.global||0)+(r.pratico||0)+(r.global2||0)+(r.logimodal||0)+(r.porto||0)+(r.redex||0);
+      },0);
+      const el = document.getElementById('woodTotal');
+      if(el) el.textContent = total>0 ? fmtCbm(total)+' cbm' : '—';
+      document.getElementById('woodUpd').textContent = file.name.replace(/\.[^.]+$/,'');
+    } else {
+      alert('Não foi possível ler os dados da planilha.\nVerifique se o arquivo possui as colunas: GLOBAL, PRÁTICO, LOGIMODAL, PORTO, REDEX.');
+    }
+  };
+  reader.onerror = ()=>alert('Erro ao ler o arquivo.');
+  reader.readAsArrayBuffer(file);
 }
-function saveConfig(){
-  localStorage.setItem(CFG_KEY,JSON.stringify(_cfg));
-}
+
+
 // ── Filtro de berços do lineup ───────────────────────────
 let _bercosDetectados = []; // detectados ao carregar o lineup
 
@@ -1830,6 +2122,89 @@ function selecionarTodosBercos(on){
   if(_lineupData.length) renderLineupRows(sortedLineupData(_lineupData));
 }
 
+
+const CFG_KEY = 'portosfs_cfg';
+let _cfg = {
+  theme:'light', accent:'#1a3a6b', fontFamily:'DM Sans',
+  fontSize:13, lineHeight:1.5, borderRadius:'8px',
+  gap:8, pad:8, ticker:true, shadow:false,
+  layout:'1fr 1fr 290px',
+  blocos:[
+    {id:'navios', label:'Navios Operando',          visible:true, rot:true},
+    {id:'lineup', label:'Programação de Navios',    visible:true, rot:true},
+    {id:'rcol',   label:'Condições / Câmbio / Maré',visible:true, rot:true},
+    {id:'wood',   label:'Estoque Madeira · Armazéns', visible:true, rot:true},
+  ],
+  rotTimer:10, rotActive:false,
+  seatradeBg:'#1e3a8a', seatradeText:'#ffffff',
+  bercosFiltro: null, // null = todos; array de strings = filtro ativo
+};
+
+function getBlocoEl(id){
+  if(id==='navios') return document.querySelector('.grid > .card:nth-child(1)');
+  if(id==='lineup') return document.querySelector('.grid > .card:nth-child(2)');
+  if(id==='rcol')   return document.querySelector('.grid > .rcol');
+  if(id==='wood')   return document.getElementById('woodCard');
+  return null;
+}
+
+function loadCfg(){
+  try{ const s=localStorage.getItem(CFG_KEY); if(s) _cfg={..._cfg,...JSON.parse(s)}; }catch(e){}
+}
+function saveConfig(){
+  localStorage.setItem(CFG_KEY,JSON.stringify(_cfg));
+}
+function buildBercosFiltro(){
+  const cont = document.getElementById('bercosFiltroLista');
+  if(!cont) return;
+
+  const todos = _bercosDetectados.length ? _bercosDetectados
+    : ['101','102','103','201','301','302']; // fallback se lineup não carregou
+
+  const ativos = _cfg.bercosFiltro || todos; // null = todos ativos
+
+  cont.innerHTML = todos.map(b => {
+    const on = ativos.includes(b);
+    return `<div style="display:flex;align-items:center;justify-content:space-between;padding:9px 12px;background:#f8f9fb;border-radius:7px;border:1px solid #e2e5ec;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:13px;font-weight:700;color:#1e40af;font-family:'DM Mono',monospace;background:#dbeafe;border-radius:4px;padding:2px 8px;">${b}</span>
+        <span style="font-size:11px;color:#475569;">Berço ${b}</span>
+      </div>
+      <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
+        <input type="checkbox" ${on?'checked':''} data-berco="${b}"
+          onchange="toggleBerco('${b}',this.checked)"
+          style="accent-color:#1a3a6b;width:16px;height:16px;">
+        <span style="font-size:11px;color:#475569;">${on?'Visível':'Oculto'}</span>
+      </label>
+    </div>`;
+  }).join('');
+}
+
+function toggleBerco(berco, on){
+  const todos = _bercosDetectados.length ? _bercosDetectados : ['101','102','103','201','301','302'];
+  // Começa com todos se ainda não filtrou
+  if(!_cfg.bercosFiltro) _cfg.bercosFiltro = [...todos];
+  if(on){
+    if(!_cfg.bercosFiltro.includes(berco)) _cfg.bercosFiltro.push(berco);
+  } else {
+    _cfg.bercosFiltro = _cfg.bercosFiltro.filter(b=>b!==berco);
+  }
+  saveConfig();
+  // Re-renderiza o lineup com o filtro aplicado
+  if(_lineupData.length) renderLineupRows(sortedLineupData(_lineupData));
+  // Atualiza label do checkbox
+  buildBercosFiltro();
+}
+
+function selecionarTodosBercos(on){
+  const todos = _bercosDetectados.length ? _bercosDetectados : ['101','102','103','201','301','302'];
+  _cfg.bercosFiltro = on ? null : []; // null = todos, [] = nenhum
+  saveConfig();
+  buildBercosFiltro();
+  if(_lineupData.length) renderLineupRows(sortedLineupData(_lineupData));
+}
+
+
 function applyAllConfig(){
   applyTheme(_cfg.theme,false);
   setAccent(_cfg.accent,false);
@@ -1842,6 +2217,7 @@ function applyAllConfig(){
   toggleTicker(_cfg.ticker,false);
   toggleShadow(_cfg.shadow,false);
   applyBlocosVisibility();
+  applySeatradeStyle();
   // Sincroniza radio de clima
   if(_cfg.climaSrc){
     _climaSrc=_cfg.climaSrc;
@@ -1854,7 +2230,7 @@ function applyAllConfig(){
 function openConfig(){
   document.getElementById('cfgOverlay').style.display='block';
   document.getElementById('cfgPanel').style.display='flex';
-  buildBlocosList(); buildRotacaoList(); syncConfigUI(); buildBercosFiltro();
+  buildBlocosList(); buildRotacaoList(); syncConfigUI(); buildBercosFiltro(); buildWoodColsToggle(); syncCustomThemePickers();
 }
 function closeConfig(){
   document.getElementById('cfgOverlay').style.display='none';
@@ -1890,6 +2266,13 @@ function syncConfigUI(){
     b.style.border=on?'2px solid #1a3a6b':'2px solid #e2e5ec';
     b.style.background=on?'#eff6ff':'#fff';
   });
+  // Sincroniza pickers de cor Seatrade
+  const bp=document.getElementById('seatradeBgPicker');
+  if(bp) bp.value=_cfg.seatradeBg||'#1e3a8a';
+  const tp=document.getElementById('seatradeTextPicker');
+  if(tp) tp.value=_cfg.seatradeText||'#ffffff';
+  const prev=document.getElementById('seatradePreview');
+  if(prev){ prev.style.background=_cfg.seatradeBg||'#1e3a8a'; prev.style.color=_cfg.seatradeText||'#ffffff'; }
 }
 
 // ── Temas ─────────────────────────────────────────────
@@ -1918,6 +2301,9 @@ function applyTheme(name,save=true){
     ocean:   {bg:'#0c4a6e',card:'#075985',border:'#0369a1',text:'#e0f2fe',muted:'#7dd3fc',sub:'#bae6fd',topbar:'#075985',ticker:'#0a3d5c',head:'#065f80',hover:'#0369a1'},
     contrast:{bg:'#000',card:'#111',border:'#333',text:'#fff',muted:'#666',sub:'#999',topbar:'#111',ticker:'#000',head:'#0a0a0a',hover:'#1a1a1a'},
   };
+  // Suporte a paleta customizada
+  if(name==='custom' && _cfg.customPalette) palettes.custom = _cfg.customPalette;
+  if(name==='custom' && window.__themePalettes?.custom) palettes.custom = window.__themePalettes.custom;
   const p=palettes[name]||palettes.light;
 
   // Aplica no body/grid
@@ -1980,10 +2366,147 @@ function applyTheme(name,save=true){
 
   if(save) saveConfig();
 }
+function setSeatradeColor(tipo, color){
+  if(tipo==='bg') _cfg.seatradeBg=color;
+  else _cfg.seatradeText=color;
+  applySeatradeStyle();
+  saveConfig();
+}
+
+function applySeatradeStyle(){
+  const bg  = _cfg.seatradeBg   || '#1e3a8a';
+  const txt = _cfg.seatradeText || '#ffffff';
+
+  // Injeta/atualiza <style> no <head> — sempre funciona independente do DOM
+  let st = document.getElementById('seatrade-style');
+  if(!st){
+    st = document.createElement('style');
+    st.id = 'seatrade-style';
+    document.head.appendChild(st);
+  }
+  st.textContent = [
+    `.lrow.seatrade-row { background:${bg}!important; border-left:4px solid ${bg}!important; }`,
+    `.lrow.seatrade-row .lc { color:${txt}!important; font-weight:700!important; }`,
+    `.lrow.seatrade-row .st { background:rgba(255,255,255,.2)!important; color:${txt}!important; }`,
+    `.lrow.seatrade-row .bs { background:rgba(255,255,255,.15)!important; color:${txt}!important; }`,
+  ].join('\n');
+
+  // Atualiza elementos do painel se estiverem visíveis
+  const prev = document.getElementById('seatradePreview');
+  if(prev){ prev.style.background=bg; prev.style.color=txt; }
+  const bp = document.getElementById('seatradeBgPicker');   if(bp) bp.value=bg;
+  const tp = document.getElementById('seatradeTextPicker'); if(tp) tp.value=txt;
+}
+
+// ── Tema Customizado ──────────────────────────────────────
+function syncCustomThemePickers(){
+  const p = _cfg.customPalette;
+  if(!p) return;
+  const map = {ct_bg:'bg',ct_card:'card',ct_text:'text',ct_topbar:'topbar',ct_border:'border',ct_ticker:'ticker'};
+  Object.entries(map).forEach(([elId, key])=>{
+    if(!p[key]) return;
+    const pic = document.getElementById(elId);
+    const txt = document.getElementById(elId+'_txt');
+    if(pic) pic.value = p[key];
+    if(txt) txt.value = p[key];
+  });
+}
+
+function syncCustomColor(id, hex){
+  if(/^#[0-9a-fA-F]{6}$/.test(hex)){
+    const picker = document.getElementById(id);
+    if(picker) picker.value = hex;
+    previewCustomTheme();
+  }
+}
+
+function previewCustomTheme(){
+  const g = id => { const el=document.getElementById(id); return el?el.value:''; };
+  const bg=g('ct_bg'), card=g('ct_card'), text=g('ct_text'),
+        topbar=g('ct_topbar'), border=g('ct_border'), ticker=g('ct_ticker');
+  // Sync text inputs
+  ['bg','card','text','topbar','border','ticker'].forEach(k=>{
+    const txt = document.getElementById('ct_'+k+'_txt');
+    const pic = document.getElementById('ct_'+k);
+    if(txt && pic) txt.value = pic.value;
+  });
+  // Live preview
+  if(bg)     document.body.style.background = bg;
+  if(card)   document.querySelectorAll('.card').forEach(c=>c.style.background=card);
+  if(text)   document.body.style.color = text;
+  if(topbar) { const t=document.querySelector('.topbar'); if(t) t.style.background=topbar; }
+  if(border) document.querySelectorAll('.card').forEach(c=>c.style.borderColor=border);
+  if(ticker) { const t=document.querySelector('.ticker'); if(t) t.style.background=ticker; }
+}
+
+function applyCustomTheme(){
+  const g = id => { const el=document.getElementById(id); return el?el.value:''; };
+  const bg=g('ct_bg'), card=g('ct_card'), text=g('ct_text'),
+        topbar=g('ct_topbar'), border=g('ct_border'), ticker=g('ct_ticker');
+  if(!bg) return;
+  const head = shadeColor(bg, -3);
+  const hover = shadeColor(card, -4);
+  const muted = blendColors(text, card, 0.45);
+  const custom = {bg,card,border,text,muted,sub:muted,topbar,ticker,head,hover,accent:topbar};
+  // Injeta paleta customizada no applyTheme
+  _customPalette = custom;
+  _cfg.theme = 'custom';
+  _cfg.customPalette = custom;
+  saveConfig();
+  // Aplica via applyTheme inserindo palette
+  const palettes = window.__themePalettes || {};
+  palettes.custom = custom;
+  window.__themePalettes = palettes;
+  applyTheme('custom');
+  document.querySelectorAll('.theme-card').forEach(c=>c.style.borderWidth='2px');
+}
+
+let _customPalette = null;
+
+function shadeColor(hex, pct){
+  const n = parseInt(hex.slice(1),16);
+  const amt = Math.round(2.55 * pct);
+  const r = Math.min(255,Math.max(0,(n>>16)+amt));
+  const g = Math.min(255,Math.max(0,((n>>8)&0xff)+amt));
+  const b = Math.min(255,Math.max(0,(n&0xff)+amt));
+  return '#'+((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1);
+}
+
+function blendColors(hex1, hex2, t){
+  const a=parseInt(hex1.slice(1),16), b2=parseInt(hex2.slice(1),16);
+  const r=Math.round(((a>>16)*(1-t))+((b2>>16)*t));
+  const g=Math.round((((a>>8)&0xff)*(1-t))+(((b2>>8)&0xff)*t));
+  const b=Math.round(((a&0xff)*(1-t))+((b2&0xff)*t));
+  return '#'+((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1);
+}
+
 function setAccent(color,save=true){
   _cfg.accent=color;
   document.documentElement.style.setProperty('--accent',color);
   document.documentElement.style.setProperty('--accent-light',color+'22');
+
+  // Aplica diretamente nos elementos que usam a cor de destaque
+  // Botões/badges azuis
+  document.querySelectorAll('.bt').forEach(el=>{
+    el.style.background=color+'22'; el.style.color=color;
+  });
+  // Cabeçalhos de berço no lineup
+  document.querySelectorAll('.berco-header').forEach(el=>{
+    el.style.background='linear-gradient(90deg,'+color+','+color+'cc)';
+  });
+  // Borda ativa nas abas de config
+  document.querySelectorAll('.cfg-tab[style*="color:#1a3a6b"]').forEach(el=>{
+    el.style.borderBottomColor=color; el.style.color=color;
+  });
+  // Topbar accent (ticker)
+  const ticker=document.querySelector('.ticker');
+  if(ticker && !document.body.dataset.theme) ticker.style.background=color;
+
+  // Atualiza dot selecionado
+  document.querySelectorAll('.accent-dot').forEach(d=>{
+    d.style.boxShadow='none';
+  });
+
   if(save) saveConfig();
 }
 
@@ -2104,14 +2627,79 @@ function buildBlocosList(){
   const cont=document.getElementById('blocosLista');
   if(!cont) return;
   cont.innerHTML=_cfg.blocos.map((b,i)=>`
-    <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:#f8f9fb;border-radius:8px;border:1px solid #e2e5ec;">
-      <span style="color:#94a3b8;cursor:grab;font-size:14px;">⠿</span>
+    <div draggable="true" data-bloco-idx="${i}"
+      style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:#f8f9fb;border-radius:8px;border:1px solid #e2e5ec;cursor:default;transition:opacity .15s;"
+      ondragstart="blocoDragStart(event,${i})"
+      ondragover="blocoDragOver(event)"
+      ondrop="blocoDrop(event,${i})"
+      ondragend="blocoDragEnd(event)">
+      <span style="color:#b0b8c8;cursor:grab;font-size:16px;line-height:1;" title="Arrastar para reordenar">⠿</span>
       <span style="flex:1;font-size:12px;font-weight:500;color:#1a1d23;">${b.label}</span>
       <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:11px;color:#475569;">
         <input type="checkbox" ${b.visible?'checked':''} onchange="setBlocoVisible(${i},this.checked)" style="accent-color:#1a3a6b;width:15px;height:15px;">
         Visível
       </label>
     </div>`).join('');
+}
+
+let _blocoDragSrc = null;
+function blocoDragStart(e, idx){
+  _blocoDragSrc = idx;
+  e.currentTarget.style.opacity = '0.4';
+  e.dataTransfer.effectAllowed = 'move';
+}
+function blocoDragOver(e){
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  e.currentTarget.style.borderColor = '#1a3a6b';
+}
+function blocoDrop(e, idx){
+  e.preventDefault();
+  if(_blocoDragSrc === null || _blocoDragSrc === idx) return;
+  const arr = _cfg.blocos;
+  const moved = arr.splice(_blocoDragSrc, 1)[0];
+  arr.splice(idx, 0, moved);
+  saveConfig();
+  applyBlocosVisibility();
+  buildBlocosList();
+  buildRotacaoList();
+}
+function blocoDragEnd(e){
+  _blocoDragSrc = null;
+  document.querySelectorAll('[data-bloco-idx]').forEach(el=>{
+    el.style.opacity='1'; el.style.borderColor='#e2e5ec';
+  });
+}
+
+function buildWoodColsToggle(){
+  const cont = document.getElementById('woodColsToggle');
+  if(!cont) return;
+  cont.innerHTML = WOOD_COLS.map(col=>`
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:#f8f9fb;border-radius:7px;border:1px solid #e2e5ec;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        ${col.grupo==='wh'?'<span style="font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;background:#dbeafe;color:#1e40af;">WH</span>':
+          col.grupo==='ca'?'<span style="font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;background:#fef3c7;color:#92400e;">CA</span>':
+          col.grupo==='tot'?'<span style="font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;background:#dcfce7;color:#166534;">Σ</span>':
+          '<span style="font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;background:#f1f5f9;color:#64748b;">ID</span>'}
+        <span style="font-size:12px;color:#1a1d23;">${col.label}</span>
+      </div>
+      <label style="cursor:pointer;">
+        <input type="checkbox" ${_woodColsVisible[col.key]!==false?'checked':''} onchange="toggleWoodCol('${col.key}',this.checked)" style="accent-color:#10b981;width:15px;height:15px;">
+      </label>
+    </div>`).join('');
+}
+
+function toggleWoodCol(key, on){
+  _woodColsVisible[key] = on;
+  saveWoodColVis();
+  renderWoodHead(); renderWoodRows();
+}
+
+function setAllWoodCols(on){
+  WOOD_COLS.forEach(c=>{ _woodColsVisible[c.key] = on || c.key==='exportador' || c.key==='total'; });
+  saveWoodColVis();
+  buildWoodColsToggle();
+  renderWoodHead(); renderWoodRows();
 }
 
 function setBlocoVisible(idx,on){
@@ -2205,7 +2793,7 @@ function stopRotation(){
 
 
 // ── Fonte por bloco ──────────────────────────────────────
-const _blockFonts = {navios:12, lineup:12, steel:12, rcol:12};
+const _blockFonts = {navios:12, lineup:12, wood:12, rcol:12};
 
 function adjBlockFont(bloco, delta){
   _blockFonts[bloco] = Math.min(20, Math.max(9, (_blockFonts[bloco]||12) + delta));
@@ -2240,7 +2828,7 @@ function applyBlockFont(bloco){
 
 function applyAllBlockFonts(){
   if(_cfg.blockFonts) Object.assign(_blockFonts, _cfg.blockFonts);
-  ['navios','lineup','steel','rcol'].forEach(b=>{
+  ['navios','lineup','wood','rcol'].forEach(b=>{
     applyBlockFont(b);
     const lbl=document.getElementById(b+'FontSz');
     if(lbl) lbl.textContent=(_blockFonts[b]||12)+'px';
@@ -2290,9 +2878,110 @@ function setClimaSrc(src){
   document.getElementById('climaUpd').textContent = src;
 }
 
-// Carrega e aplica config salva (após todas as funções estarem definidas)
-loadCfg(); applyAllConfig(); applyAllBlockFonts();
+// ── CLIMA ─────────────────────────────────────────────────
+async function loadClima(){
+  try{
+    const r=await fetch('https://api.open-meteo.com/v1/forecast?latitude=-26.2293&longitude=-48.6411&current=temperature_2m,relative_humidity_2m,wind_speed_10m,wind_direction_10m,surface_pressure,apparent_temperature,weather_code,visibility,precipitation&daily=temperature_2m_max,temperature_2m_min,weather_code,precipitation_sum,wind_speed_10m_max,uv_index_max&timezone=America%2FSao_Paulo&forecast_days=7');
+    const d=await r.json(),c=d.current;
+    const desc={0:'Céu limpo',1:'Limpo',2:'Parc. nublado',3:'Nublado',45:'Neblina',51:'Chuvisco',61:'Chuva fraca',63:'Chuva',80:'Pancadas',95:'Tempestade'};
+    document.getElementById('wT').textContent=Math.round(c.temperature_2m)+'°C';
+    document.getElementById('wD').textContent=desc[c.weather_code]||'Variável';
+    document.getElementById('wF').textContent=Math.round(c.apparent_temperature)+'°C';
+    const windDir=['N','NE','L','SE','S','SO','O','NO'];
+    const wdIdx=Math.round((c.wind_direction_10m||0)/45)%8;
+    document.getElementById('wW').textContent=Math.round(c.wind_speed_10m)+' km/h '+windDir[wdIdx];
+    document.getElementById('wH').textContent=c.relative_humidity_2m+'%';
+    document.getElementById('wV').textContent=c.visibility?(c.visibility/1000).toFixed(0)+' km':'—';
+    document.getElementById('wP').textContent=Math.round(c.surface_pressure)+' hPa';
+    const cEl=document.getElementById('wChuva'); if(cEl) cEl.textContent=(c.precipitation||0).toFixed(1)+' mm';
+    document.getElementById('climaUpd').textContent=hm();
+    const ic={0:'☀️',1:'🌤',2:'⛅',3:'☁️',45:'🌫',51:'🌧',61:'🌧',63:'🌧',80:'🌦',95:'⛈'};
+    const dn=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+    document.getElementById('fc').innerHTML=d.daily.temperature_2m_max.map((mx,i)=>{
+      const dt=new Date(d.daily.time[i]+'T12:00:00');
+      const chuva=d.daily.precipitation_sum?.[i]||0;
+      const uv=d.daily.uv_index_max?.[i]||0;
+      const uvCor=uv>=8?'#ef4444':uv>=6?'#f59e0b':uv>=3?'#eab308':'#22c55e';
+      return`<div style="text-align:center;padding:2px;">
+        <div style="font-size:9px;color:#94a3b8;font-weight:600;">${i===0?'Hoje':dn[dt.getDay()]}</div>
+        <div style="font-size:14px;margin:1px 0;">${ic[d.daily.weather_code[i]]||'🌡'}</div>
+        <div style="font-size:11px;font-weight:600;">${Math.round(mx)}°</div>
+        <div style="font-size:9px;color:#94a3b8;">${Math.round(d.daily.temperature_2m_min[i])}°</div>
+        ${chuva>0?`<div style="font-size:9px;color:#3b82f6;">💧${chuva.toFixed(0)}mm</div>`:''}
+        <div style="font-size:8px;color:${uvCor};">UV ${uv.toFixed(0)}</div>
+      </div>`;
+    }).join('');
+  }catch(e){document.getElementById('wT').textContent='--°C';}
+}
 
+// ── CÂMBIO ─────────────────────────────────────────────────
+async function loadCambio(){
+  let usd=null,eur=null;
+  try{const r=await fetch('https://open.er-api.com/v6/latest/USD');if(r.ok){const d=await r.json();usd=d.rates?.BRL;eur=usd&&d.rates?.EUR?(usd/d.rates.EUR):null;}}catch(e){}
+  if(!usd){
+    try{const r=await fetch('https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/usd.json');if(r.ok){const d=await r.json();usd=d.usd?.brl;}}catch(e){}
+    try{const r=await fetch('https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/eur.json');if(r.ok){const d=await r.json();eur=d.eur?.brl;}}catch(e){}
+  }
+  if(!usd){
+    try{const r=await fetch('https://api.allorigins.win/raw?url='+encodeURIComponent('https://api.frankfurter.app/latest?from=USD&to=BRL'));if(r.ok){const d=await r.json();usd=d.rates?.BRL;}}catch(e){}
+    try{const r=await fetch('https://api.allorigins.win/raw?url='+encodeURIComponent('https://api.frankfurter.app/latest?from=EUR&to=BRL'));if(r.ok){const d=await r.json();eur=d.rates?.BRL;}}catch(e){}
+  }
+  if(usd){
+    document.getElementById('cambioList').innerHTML=`
+      <div class="cg"><div style="font-size:10px;color:#94a3b8;">USD/BRL</div><div style="font-size:16px;font-weight:700;">R$ ${usd.toFixed(3)}</div><div style="font-size:9px;color:#94a3b8;">Dólar comercial</div></div>
+      <div class="cg"><div style="font-size:10px;color:#94a3b8;">EUR/BRL</div><div style="font-size:16px;font-weight:700;">R$ ${eur?eur.toFixed(3):'—'}</div><div style="font-size:9px;color:#94a3b8;">Euro comercial</div></div>
+    `;
+    document.getElementById('cambioUpd').textContent=hm();
+  }else{
+    document.getElementById('cambioList').innerHTML='<div style="padding:8px;font-size:11px;color:#94a3b8;">Câmbio indisponível</div>';
+  }
+}
+
+// ── MARÉ ────────────────────────────────────────────────────
+function loadMare(){
+  const tides=[{t:'02:30',v:'0.45m',tp:'Baixa-mar'},{t:'08:50',v:'1.38m',tp:'Preamar'},{t:'15:10',v:'0.52m',tp:'Baixa-mar'},{t:'21:30',v:'1.41m',tp:'Preamar'}];
+  const h=new Date().getHours();
+  document.getElementById('tideList').innerHTML=tides.map(td=>{
+    const p=parseInt(td.t)<h;
+    return`<div class="tr"><span style="font-size:10px;color:${p?'#94a3b8':'#1a1d23'}">${p?'✓ ':''}<b>${td.tp}</b></span><span style="font-size:10px;font-weight:500;">${td.t} · ${td.v}</span></div>`;
+  }).join('');
+}
+
+// ── TICKER ─────────────────────────────────────────────────
+function buildTicker(){
+  const items=['🚢 Porto de São Francisco do Sul · Dashboard Operacional'];
+  document.querySelectorAll('.nrow').forEach(r=>{
+    const b=r.querySelector('.bt')?.textContent||'';
+    const n=r.querySelectorAll('.nc')[2]?.querySelector('div')?.textContent||'';
+    if(n) items.push(`🚢 Berço ${b} · ${n}`);
+  });
+  document.querySelectorAll('.lrow:not(.seatrade-row),.lrow.seatrade-row').forEach(r=>{
+    const cells=[...r.querySelectorAll('.lc')];
+    const vessel=cells[2]?.textContent?.trim()||'';
+    const berco=cells[1]?.textContent?.trim()||'';
+    const etb=cells[5]?.textContent?.trim()||'';
+    if(vessel&&etb&&etb!=='—') items.push(`⚓ Berço ${berco} · ${vessel} · ETB ${etb}`);
+  });
+  const txt=items.map(i=>`<span>${i}</span>`).join('<span class="ticker-sep">|</span>');
+  const el=document.getElementById('ticker');
+  if(el) el.innerHTML=txt+'<span class="ticker-sep">|</span>'+txt;
+}
+
+// ── INIT ───────────────────────────────────────────────────
+loadMare(); loadClima(); loadCambio();
+loadNavios(); loadLineup(); loadWood();
+
+setInterval(loadClima,    10*60*1000);
+setInterval(loadCambio,    5*60*1000);
+setInterval(loadMare,         60*1000);
+setInterval(loadNavios,    5*60*1000);
+setInterval(loadLineup,   10*60*1000);
+setInterval(loadWood,     15*60*1000);
+
+
+// ════════════════════════════════════════════════════════
+
+loadCfg(); applyAllConfig(); applyAllBlockFonts();
 </script>
 </body>
 </html>
