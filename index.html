@@ -110,6 +110,8 @@ body{font-family:'DM Sans',sans-serif;background:#F0F2F5;color:#1a1d23;font-size
 .shead-s .sc.drag-over{border-left:2px solid #0d9488;}
 .sresize{position:absolute;right:0;top:0;bottom:0;width:5px;cursor:col-resize;background:transparent;z-index:10;}
 .sresize:hover,.sresize.dragging{background:#0d9488;}
+.wresize{position:absolute;right:0;top:0;bottom:0;width:5px;cursor:col-resize;background:transparent;z-index:10;}
+.wresize:hover,.wresize.dragging{background:#10b981;}
 .shead{background:#fafbfc;border-bottom:1px solid #f0f2f6;position:sticky;top:0;}
 .srow{border-bottom:1px solid #f8f9fb;}.srow:last-child{border:none;}.srow:hover{background:#fafbfc;}
 .nt{font-size:10px;font-weight:600;color:#0f766e;background:#ccfbf1;border-radius:3px;padding:1px 5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -160,6 +162,9 @@ body{font-family:'DM Sans',sans-serif;background:#F0F2F5;color:#1a1d23;font-size
 .ml{font-size:9px;color:#94a3b8;text-transform:uppercase;letter-spacing:.4px;margin-top:2px;}
 .ms{font-size:9px;margin-top:2px;}
 .up{color:#22c55e;}.neu{color:#94a3b8;}
+/* Grid column resize handles */
+.grid-resize-handle{position:absolute;top:0;bottom:0;width:8px;cursor:col-resize;z-index:100;background:transparent;transition:background .15s;user-select:none;}
+.grid-resize-handle:hover,.grid-resize-handle.dragging{background:rgba(26,58,107,.18);}
 </style>
 </head>
 <body>
@@ -685,38 +690,100 @@ body{font-family:'DM Sans',sans-serif;background:#F0F2F5;color:#1a1d23;font-size
 
       <div style="font-size:12px;font-weight:600;color:#475569;margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px;">Tamanho por bloco</div>
       <div style="display:flex;flex-direction:column;gap:10px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:#f8f9fb;border-radius:8px;border:1px solid #e2e5ec;">
-          <span style="font-size:12px;font-weight:500;color:#1a1d23;">🚢 Navios Operando</span>
-          <div style="display:flex;align-items:center;gap:8px;">
-            <button onclick="adjBlockFont('navios',-1)" style="width:24px;height:24px;border-radius:50%;border:1px solid #e2e5ec;background:#fff;cursor:pointer;font-size:14px;line-height:1;display:flex;align-items:center;justify-content:center;">−</button>
-            <span id="naviosFontSz" style="font-size:12px;font-weight:600;color:#1a3a6b;min-width:28px;text-align:center;">12px</span>
-            <button onclick="adjBlockFont('navios',1)" style="width:24px;height:24px;border-radius:50%;border:1px solid #e2e5ec;background:#fff;cursor:pointer;font-size:14px;line-height:1;display:flex;align-items:center;justify-content:center;">+</button>
+
+        <!-- helper macro: each block gets two rows: Título / Linhas -->
+        <!-- 🚢 Navios -->
+        <div style="padding:10px 12px;background:#f8f9fb;border-radius:8px;border:1px solid #e2e5ec;">
+          <div style="font-size:12px;font-weight:600;color:#1a1d23;margin-bottom:8px;">🚢 Navios Operando</div>
+          <div style="display:flex;flex-direction:column;gap:5px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <span style="font-size:11px;color:#94a3b8;width:48px;">Título</span>
+              <div style="display:flex;align-items:center;gap:6px;">
+                <button onclick="adjBlockFont('navios','title',-1)" style="width:22px;height:22px;border-radius:50%;border:1px solid #e2e5ec;background:#fff;cursor:pointer;font-size:13px;line-height:1;display:flex;align-items:center;justify-content:center;">−</button>
+                <span id="naviosFontTitleSz" style="font-size:11px;font-weight:600;color:#1a3a6b;min-width:28px;text-align:center;">11px</span>
+                <button onclick="adjBlockFont('navios','title',1)" style="width:22px;height:22px;border-radius:50%;border:1px solid #e2e5ec;background:#fff;cursor:pointer;font-size:13px;line-height:1;display:flex;align-items:center;justify-content:center;">+</button>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <span style="font-size:11px;color:#94a3b8;width:48px;">Linhas</span>
+              <div style="display:flex;align-items:center;gap:6px;">
+                <button onclick="adjBlockFont('navios','rows',-1)" style="width:22px;height:22px;border-radius:50%;border:1px solid #e2e5ec;background:#fff;cursor:pointer;font-size:13px;line-height:1;display:flex;align-items:center;justify-content:center;">−</button>
+                <span id="naviosFontRowsSz" style="font-size:11px;font-weight:600;color:#1a3a6b;min-width:28px;text-align:center;">12px</span>
+                <button onclick="adjBlockFont('navios','rows',1)" style="width:22px;height:22px;border-radius:50%;border:1px solid #e2e5ec;background:#fff;cursor:pointer;font-size:13px;line-height:1;display:flex;align-items:center;justify-content:center;">+</button>
+              </div>
+            </div>
           </div>
         </div>
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:#f8f9fb;border-radius:8px;border:1px solid #e2e5ec;">
-          <span style="font-size:12px;font-weight:500;color:#1a1d23;">📋 Programação (Lineup)</span>
-          <div style="display:flex;align-items:center;gap:8px;">
-            <button onclick="adjBlockFont('lineup',-1)" style="width:24px;height:24px;border-radius:50%;border:1px solid #e2e5ec;background:#fff;cursor:pointer;font-size:14px;line-height:1;display:flex;align-items:center;justify-content:center;">−</button>
-            <span id="lineupFontSz" style="font-size:12px;font-weight:600;color:#1a3a6b;min-width:28px;text-align:center;">12px</span>
-            <button onclick="adjBlockFont('lineup',1)" style="width:24px;height:24px;border-radius:50%;border:1px solid #e2e5ec;background:#fff;cursor:pointer;font-size:14px;line-height:1;display:flex;align-items:center;justify-content:center;">+</button>
+
+        <!-- 📋 Lineup -->
+        <div style="padding:10px 12px;background:#f8f9fb;border-radius:8px;border:1px solid #e2e5ec;">
+          <div style="font-size:12px;font-weight:600;color:#1a1d23;margin-bottom:8px;">📋 Programação (Lineup)</div>
+          <div style="display:flex;flex-direction:column;gap:5px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <span style="font-size:11px;color:#94a3b8;width:48px;">Título</span>
+              <div style="display:flex;align-items:center;gap:6px;">
+                <button onclick="adjBlockFont('lineup','title',-1)" style="width:22px;height:22px;border-radius:50%;border:1px solid #e2e5ec;background:#fff;cursor:pointer;font-size:13px;line-height:1;display:flex;align-items:center;justify-content:center;">−</button>
+                <span id="lineupFontTitleSz" style="font-size:11px;font-weight:600;color:#1a3a6b;min-width:28px;text-align:center;">11px</span>
+                <button onclick="adjBlockFont('lineup','title',1)" style="width:22px;height:22px;border-radius:50%;border:1px solid #e2e5ec;background:#fff;cursor:pointer;font-size:13px;line-height:1;display:flex;align-items:center;justify-content:center;">+</button>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <span style="font-size:11px;color:#94a3b8;width:48px;">Linhas</span>
+              <div style="display:flex;align-items:center;gap:6px;">
+                <button onclick="adjBlockFont('lineup','rows',-1)" style="width:22px;height:22px;border-radius:50%;border:1px solid #e2e5ec;background:#fff;cursor:pointer;font-size:13px;line-height:1;display:flex;align-items:center;justify-content:center;">−</button>
+                <span id="lineupFontRowsSz" style="font-size:11px;font-weight:600;color:#1a3a6b;min-width:28px;text-align:center;">12px</span>
+                <button onclick="adjBlockFont('lineup','rows',1)" style="width:22px;height:22px;border-radius:50%;border:1px solid #e2e5ec;background:#fff;cursor:pointer;font-size:13px;line-height:1;display:flex;align-items:center;justify-content:center;">+</button>
+              </div>
+            </div>
           </div>
         </div>
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:#f8f9fb;border-radius:8px;border:1px solid #e2e5ec;">
-          <span style="font-size:12px;font-weight:500;color:#1a1d23;">🌿 Estoque Madeira · Armazéns</span>
-          <div style="display:flex;align-items:center;gap:8px;">
-            <button onclick="adjBlockFont('steel',-1)" style="width:24px;height:24px;border-radius:50%;border:1px solid #e2e5ec;background:#fff;cursor:pointer;font-size:14px;line-height:1;display:flex;align-items:center;justify-content:center;">−</button>
-            <span id="steelFontSz" style="font-size:12px;font-weight:600;color:#1a3a6b;min-width:28px;text-align:center;">12px</span>
-            <button onclick="adjBlockFont('steel',1)" style="width:24px;height:24px;border-radius:50%;border:1px solid #e2e5ec;background:#fff;cursor:pointer;font-size:14px;line-height:1;display:flex;align-items:center;justify-content:center;">+</button>
+
+        <!-- 🌿 Estoque Madeira -->
+        <div style="padding:10px 12px;background:#f8f9fb;border-radius:8px;border:1px solid #e2e5ec;">
+          <div style="font-size:12px;font-weight:600;color:#1a1d23;margin-bottom:8px;">🌿 Estoque Madeira</div>
+          <div style="display:flex;flex-direction:column;gap:5px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <span style="font-size:11px;color:#94a3b8;width:48px;">Título</span>
+              <div style="display:flex;align-items:center;gap:6px;">
+                <button onclick="adjBlockFont('wood','title',-1)" style="width:22px;height:22px;border-radius:50%;border:1px solid #e2e5ec;background:#fff;cursor:pointer;font-size:13px;line-height:1;display:flex;align-items:center;justify-content:center;">−</button>
+                <span id="woodFontTitleSz" style="font-size:11px;font-weight:600;color:#1a3a6b;min-width:28px;text-align:center;">11px</span>
+                <button onclick="adjBlockFont('wood','title',1)" style="width:22px;height:22px;border-radius:50%;border:1px solid #e2e5ec;background:#fff;cursor:pointer;font-size:13px;line-height:1;display:flex;align-items:center;justify-content:center;">+</button>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <span style="font-size:11px;color:#94a3b8;width:48px;">Linhas</span>
+              <div style="display:flex;align-items:center;gap:6px;">
+                <button onclick="adjBlockFont('wood','rows',-1)" style="width:22px;height:22px;border-radius:50%;border:1px solid #e2e5ec;background:#fff;cursor:pointer;font-size:13px;line-height:1;display:flex;align-items:center;justify-content:center;">−</button>
+                <span id="woodFontRowsSz" style="font-size:11px;font-weight:600;color:#1a3a6b;min-width:28px;text-align:center;">12px</span>
+                <button onclick="adjBlockFont('wood','rows',1)" style="width:22px;height:22px;border-radius:50%;border:1px solid #e2e5ec;background:#fff;cursor:pointer;font-size:13px;line-height:1;display:flex;align-items:center;justify-content:center;">+</button>
+              </div>
+            </div>
           </div>
         </div>
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:#f8f9fb;border-radius:8px;border:1px solid #e2e5ec;">
-          <span style="font-size:12px;font-weight:500;color:#1a1d23;">🌤 Condições / Câmbio / Maré</span>
-          <div style="display:flex;align-items:center;gap:8px;">
-            <button onclick="adjBlockFont('rcol',-1)" style="width:24px;height:24px;border-radius:50%;border:1px solid #e2e5ec;background:#fff;cursor:pointer;font-size:14px;line-height:1;display:flex;align-items:center;justify-content:center;">−</button>
-            <span id="rcolFontSz" style="font-size:12px;font-weight:600;color:#1a3a6b;min-width:28px;text-align:center;">12px</span>
-            <button onclick="adjBlockFont('rcol',1)" style="width:24px;height:24px;border-radius:50%;border:1px solid #e2e5ec;background:#fff;cursor:pointer;font-size:14px;line-height:1;display:flex;align-items:center;justify-content:center;">+</button>
+
+        <!-- 🌤 Condições / Câmbio / Maré -->
+        <div style="padding:10px 12px;background:#f8f9fb;border-radius:8px;border:1px solid #e2e5ec;">
+          <div style="font-size:12px;font-weight:600;color:#1a1d23;margin-bottom:8px;">🌤 Condições / Câmbio / Maré</div>
+          <div style="display:flex;flex-direction:column;gap:5px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <span style="font-size:11px;color:#94a3b8;width:48px;">Título</span>
+              <div style="display:flex;align-items:center;gap:6px;">
+                <button onclick="adjBlockFont('rcol','title',-1)" style="width:22px;height:22px;border-radius:50%;border:1px solid #e2e5ec;background:#fff;cursor:pointer;font-size:13px;line-height:1;display:flex;align-items:center;justify-content:center;">−</button>
+                <span id="rcolFontTitleSz" style="font-size:11px;font-weight:600;color:#1a3a6b;min-width:28px;text-align:center;">11px</span>
+                <button onclick="adjBlockFont('rcol','title',1)" style="width:22px;height:22px;border-radius:50%;border:1px solid #e2e5ec;background:#fff;cursor:pointer;font-size:13px;line-height:1;display:flex;align-items:center;justify-content:center;">+</button>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <span style="font-size:11px;color:#94a3b8;width:48px;">Linhas</span>
+              <div style="display:flex;align-items:center;gap:6px;">
+                <button onclick="adjBlockFont('rcol','rows',-1)" style="width:22px;height:22px;border-radius:50%;border:1px solid #e2e5ec;background:#fff;cursor:pointer;font-size:13px;line-height:1;display:flex;align-items:center;justify-content:center;">−</button>
+                <span id="rcolFontRowsSz" style="font-size:11px;font-weight:600;color:#1a3a6b;min-width:28px;text-align:center;">12px</span>
+                <button onclick="adjBlockFont('rcol','rows',1)" style="width:22px;height:22px;border-radius:50%;border:1px solid #e2e5ec;background:#fff;cursor:pointer;font-size:13px;line-height:1;display:flex;align-items:center;justify-content:center;">+</button>
+              </div>
+            </div>
           </div>
         </div>
+
       </div>
     </div>
 
@@ -1620,7 +1687,33 @@ function colResizeStart(e, idx){
   document.addEventListener('mouseup', onUp);
 }
 
-
+// ── Resize colunas Estoque Madeira ───────────────────────
+let _woodResizeState = null;
+function woodColResizeStart(e, visIdx){
+  e.preventDefault();
+  e.stopPropagation();
+  const vcols = visibleWoodCols();
+  const col = vcols[visIdx];
+  if(!col) return;
+  const woodCol = WOOD_COLS.find(c=>c.key===col.key);
+  if(!woodCol) return;
+  _woodResizeState = {key: col.key, startX: e.clientX, startW: woodCol.w};
+  e.target.classList.add('dragging');
+  const onMove = ev => {
+    if(!_woodResizeState) return;
+    const delta = ev.clientX - _woodResizeState.startX;
+    const c = WOOD_COLS.find(c=>c.key===_woodResizeState.key);
+    if(c){ c.w = Math.max(36, _woodResizeState.startW + delta); applyWoodColWidths(); }
+  };
+  const onUp = () => {
+    document.querySelector('.wresize.dragging')?.classList.remove('dragging');
+    _woodResizeState = null;
+    document.removeEventListener('mousemove', onMove);
+    document.removeEventListener('mouseup', onUp);
+  };
+  document.addEventListener('mousemove', onMove);
+  document.addEventListener('mouseup', onUp);
+}
 
 
 // ── STEELPORT — Supabase ─────────────────────────────────
@@ -1728,10 +1821,11 @@ function renderWoodHead(){
   const head = document.getElementById('woodHead');
   if(!head) return;
   head.className = 'wood-head';
-  head.innerHTML = visibleWoodCols().map(col=>{
+  head.innerHTML = visibleWoodCols().map((col,idx)=>{
     const badge = col.grupo==='wh'?'wb-wh':col.grupo==='ca'?'wb-ca':col.grupo==='tot'?'wb-tot':'';
     return `<div class="wc" style="position:relative;">
       ${badge?`<span class="wood-badge ${badge}" style="font-size:8px;">${col.label}</span>`:col.label}
+      <div class="wresize" onmousedown="woodColResizeStart(event,${idx})" onclick="event.stopPropagation()"></div>
     </div>`;
   }).join('');
   applyWoodColWidths();
@@ -2130,39 +2224,67 @@ function parseWoodCSV(csvText){
 
 // ── Núcleo de parse (compartilhado por Excel e CSV) ──────────────
 function _parseWoodData(data){
-  // Detecta linha de colunas (contém GLOBAL, PRÁTICO etc.)
+  // Converte número BR "10.306,25" → 10306.25
+  const parseNum = v => {
+    const s = String(v||'').trim().replace(/\s+/g,'');
+    if(!s||s==='-'||s==='—') return 0;
+    if(s.includes(',')) return parseFloat(s.replace(/\./g,'').replace(',','.')) || 0;
+    return parseFloat(s) || 0;
+  };
+
+  // Detecta linha de colunas numéricas (procura por GLOBAL, PRÁTICO, LOGIMODAL, REDEX)
   let colRow = -1;
   for(let i=0;i<data.length;i++){
-    const row = (data[i]||[]).map(v=>String(v||'').toUpperCase().trim());
-    if(row.some(v=>v==='GLOBAL'||v.includes('PRÁT')||v.includes('PRAT'))){
-      colRow = i; break;
+    const row=(data[i]||[]).map(v=>String(v||'').toUpperCase().trim());
+    if(row.some(v=>v.includes('GLOBAL')||v.includes('PRÁT')||v.includes('PRAT')||v.includes('LOGIM')||v.includes('REDEX'))){
+      colRow=i; break;
     }
   }
-  if(colRow < 0) return null;
-  const cols = (data[colRow]||[]).map(v=>String(v||'').toUpperCase().trim());
+  if(colRow<0) return null;
+
+  const cols=(data[colRow]||[]).map(v=>String(v||'').toUpperCase().trim());
+
+  // Índices das colunas numéricas — usa includes() em vez de === para lidar com headers compostos
   const idx = {
-    global:    cols.findIndex(v=>v==='GLOBAL'),
+    global:    cols.findIndex(v=>v.includes('GLOBAL')&&!v.includes('GLOBAL 2')&&!v.includes('GLOBAL2')),
     pratico:   cols.findIndex(v=>v.includes('PRÁT')||v.includes('PRAT')),
-    global2:   (()=>{ let f=cols.findIndex(v=>v==='GLOBAL'); return cols.findIndex((v,i)=>v==='GLOBAL'&&i>f); })(),
+    global2:   cols.findIndex(v=>v.includes('GLOBAL 2')||v.includes('GLOBAL2')),
     logimodal: cols.findIndex(v=>v.includes('LOGIM')),
-    porto:     cols.findIndex(v=>v==='PORTO'),
+    porto:     cols.findIndex(v=>v.includes('PORTO')&&!v.includes('EXPORT')),
     redex:     cols.findIndex(v=>v.includes('REDEX')),
   };
-  const rows = [];
+  // Se global2 não encontrado via texto, pega segunda ocorrência de GLOBAL
+  if(idx.global2<0){
+    idx.global2 = cols.findIndex((v,i)=>v.includes('GLOBAL')&&i>idx.global);
+  }
+
+  // Detecta colunas EXPORTADOR e CMM — tenta linha atual e linha anterior (2-row headers)
+  const prevCols = colRow>0 ? (data[colRow-1]||[]).map(v=>String(v||'').toUpperCase().trim()) : [];
+  let expIdx = cols.findIndex(v=>v.includes('EXPORT'));
+  if(expIdx<0) expIdx = prevCols.findIndex(v=>v.includes('EXPORT'));
+  if(expIdx<0) expIdx = 0;
+
+  let cmmIdx = cols.findIndex(v=>v==='CMM'||v.startsWith('CMM'));
+  if(cmmIdx<0) cmmIdx = prevCols.findIndex(v=>v==='CMM'||v.startsWith('CMM'));
+  if(cmmIdx<0) cmmIdx = expIdx+1;
+
+  // Lê linhas de dados
+  const rows=[];
   for(let i=colRow+1;i<data.length;i++){
-    const row = data[i]||[];
-    const exp = String(row[2]||row[1]||'').trim();
-    const cmm = String(row[3]||'').trim();
+    const row=data[i]||[];
+    const exp=String(row[expIdx]||'').trim();
+    const cmm=String(row[cmmIdx]||'').trim();
     if(!exp) continue;
     if(exp.toUpperCase().includes('TOTAL')) break;
-    const num = k => idx[k]>=0 ? (parseFloat(row[idx[k]])||0) : 0;
-    const hasData = ['global','pratico','global2','logimodal','porto','redex'].some(k=>num(k)>0);
-    if(!hasData && !exp) continue;
-    rows.push({exportador:exp, cmm:cmm!==exp?cmm:'',
+    const num=k=>idx[k]>=0?parseNum(row[idx[k]]):0;
+    rows.push({
+      exportador:exp,
+      cmm: cmm!==exp?cmm:'',
       global:num('global'), pratico:num('pratico'), global2:num('global2'),
-      logimodal:num('logimodal'), porto:num('porto'), redex:num('redex')});
+      logimodal:num('logimodal'), porto:num('porto'), redex:num('redex'),
+    });
   }
-  return rows.length ? rows : null;
+  return rows.length?rows:null;
 }
 
 async function loadWoodFromFile(input){
@@ -2750,6 +2872,8 @@ function setLayout(tpl,save=true){
     b.style.color=on?'#1e40af':'#475569';
   });
   if(save) saveConfig();
+  // Reposiciona handles de resize do grid
+  requestAnimationFrame(positionGridHandles);
 }
 function setGap(v,save=true){
   v=+v; _cfg.gap=v;
@@ -3048,46 +3172,61 @@ function stopRotation(){
 }
 
 
-// ── Fonte por bloco ──────────────────────────────────────
-const _blockFonts = {navios:12, lineup:12, wood:12, rcol:12};
+// ── Fonte por bloco (title = cabeçalho, rows = linhas) ──────────
+const _blockFonts = {
+  navios: {title:11, rows:12},
+  lineup: {title:11, rows:12},
+  wood:   {title:11, rows:12},
+  rcol:   {title:11, rows:12},
+};
 
-function adjBlockFont(bloco, delta){
-  _blockFonts[bloco] = Math.min(20, Math.max(9, (_blockFonts[bloco]||12) + delta));
+function adjBlockFont(bloco, target, delta){
+  if(!_blockFonts[bloco]) _blockFonts[bloco]={title:11,rows:12};
+  _blockFonts[bloco][target] = Math.min(20, Math.max(8, (_blockFonts[bloco][target]||12) + delta));
   applyBlockFont(bloco);
-  const lbl = document.getElementById(bloco+'FontSz');
-  if(lbl) lbl.textContent = _blockFonts[bloco]+'px';
-  _cfg.blockFonts = {..._blockFonts};
+  const lbl = document.getElementById(bloco+'Font'+target.charAt(0).toUpperCase()+target.slice(1)+'Sz');
+  if(lbl) lbl.textContent = _blockFonts[bloco][target]+'px';
+  _cfg.blockFonts = JSON.parse(JSON.stringify(_blockFonts));
   saveConfig();
 }
 
 function applyBlockFont(bloco){
-  const sz = _blockFonts[bloco];
-  const sel = {
-    navios: '#nList .nc, #naviosHead .nc',
-    lineup: '#lList .lc, #lineupHead .lc',
-    steel:  '#sList .sc, #steelHead .sc',
-    rcol:   '.rcol .cr, .rcol .crl, .rcol .crv, .rcol .fc > div, #tideList .tr, #cambioList',
+  const f = _blockFonts[bloco] || {title:11, rows:12};
+  const tSz = f.title || 11;
+  const rSz = f.rows  || 12;
+  const sels = {
+    navios: { title:'#naviosHead .nc',                         rows:'#nList .nc' },
+    lineup: { title:'#lineupHead .lc',                         rows:'#lList .lc, #lList .bs' },
+    wood:   { title:'#woodHead .wc',                           rows:'#woodBody .wc, #woodTot .wc' },
+    rcol:   { title:'.rcol .card-h',                           rows:'.rcol .cr, .rcol .crl, .rcol .crv, .rcol .fc > div, #tideList .tr, #cambioList' },
   }[bloco];
-  if(!sel) return;
-  document.querySelectorAll(sel).forEach(el=>{
-    el.style.fontSize = sz+'px';
-  });
-  // Berço tags e nome do navio escalam junto
+  if(!sels) return;
+  document.querySelectorAll(sels.title).forEach(el=>{ el.style.fontSize=tSz+'px'; });
+  document.querySelectorAll(sels.rows).forEach(el=>{  el.style.fontSize=rSz+'px'; });
   if(bloco==='navios'){
-    document.querySelectorAll('#nList .bt').forEach(el=>el.style.fontSize=(sz+1)+'px');
-    document.querySelectorAll('#nList [style*="font-weight:600"]').forEach(el=>el.style.fontSize=(sz+1)+'px');
+    document.querySelectorAll('#nList .bt').forEach(el=>el.style.fontSize=(rSz+1)+'px');
   }
   if(bloco==='lineup'){
-    document.querySelectorAll('#lList .bs,.lrow .bs').forEach(el=>el.style.fontSize=(sz)+'px');
+    document.querySelectorAll('#lList .bs,.lrow .bs').forEach(el=>el.style.fontSize=rSz+'px');
   }
 }
 
 function applyAllBlockFonts(){
-  if(_cfg.blockFonts) Object.assign(_blockFonts, _cfg.blockFonts);
+  if(_cfg.blockFonts){
+    // Migração: formato antigo {navios:12} → novo {navios:{title:11,rows:12}}
+    Object.keys(_cfg.blockFonts).forEach(b=>{
+      const v=_cfg.blockFonts[b];
+      if(typeof v==='number') _blockFonts[b]={title:Math.max(8,v-1), rows:v};
+      else if(v && typeof v==='object') _blockFonts[b]=Object.assign({title:11,rows:12},v);
+    });
+  }
   ['navios','lineup','wood','rcol'].forEach(b=>{
     applyBlockFont(b);
-    const lbl=document.getElementById(b+'FontSz');
-    if(lbl) lbl.textContent=(_blockFonts[b]||12)+'px';
+    const f=_blockFonts[b]||{title:11,rows:12};
+    const tl=document.getElementById(b+'FontTitleSz');
+    const rl=document.getElementById(b+'FontRowsSz');
+    if(tl) tl.textContent=f.title+'px';
+    if(rl) rl.textContent=f.rows+'px';
   });
 }
 
@@ -3223,10 +3362,83 @@ function buildTicker(){
   if(el) el.innerHTML=txt+'<span class="ticker-sep">|</span>'+txt;
 }
 
+// ── Redimensionamento das colunas do grid (drag) ──────────
+let _gridResizeState = null;
+
+function initGridResize(){
+  const grid = document.querySelector('.grid');
+  if(!grid) return;
+  grid.style.position = 'relative';
+  grid.querySelectorAll('.grid-resize-handle').forEach(h=>h.remove());
+  for(let i=0;i<2;i++){
+    const h = document.createElement('div');
+    h.className = 'grid-resize-handle';
+    h.title = 'Arraste para redimensionar';
+    h.dataset.col = String(i);
+    h.addEventListener('mousedown', e=>gridResizeStart(e,i));
+    grid.appendChild(h);
+  }
+  requestAnimationFrame(positionGridHandles);
+}
+
+function positionGridHandles(){
+  const grid = document.querySelector('.grid');
+  if(!grid) return;
+  const handles = grid.querySelectorAll('.grid-resize-handle');
+  if(!handles.length) return;
+  const cs = getComputedStyle(grid);
+  const colWidths = cs.gridTemplateColumns.trim().split(/\s+/).map(v=>parseFloat(v)||0);
+  const gap = parseFloat(cs.columnGap) || parseFloat(cs.gap) || 8;
+  const pad = parseFloat(cs.paddingLeft) || 8;
+  let x = pad;
+  handles.forEach((h,i)=>{
+    x += colWidths[i] || 0;
+    h.style.left = (x + gap/2 - 4)+'px';
+    // Hide handle if adjacent column is nearly zero
+    h.style.display = (colWidths[i]<10||colWidths[i+1]<10) ? 'none' : 'block';
+    x += gap;
+  });
+}
+
+function gridResizeStart(e, colIdx){
+  e.preventDefault();
+  e.stopPropagation();
+  const grid = document.querySelector('.grid');
+  if(!grid) return;
+  const cs = getComputedStyle(grid);
+  const cols = cs.gridTemplateColumns.trim().split(/\s+/).map(v=>parseFloat(v)||0);
+  _gridResizeState = {colIdx, startX:e.clientX, cols:[...cols]};
+  document.querySelector('.grid-resize-handle[data-col="'+colIdx+'"]')?.classList.add('dragging');
+  const onMove = ev => {
+    if(!_gridResizeState) return;
+    const {colIdx:ci, startX, cols:c} = _gridResizeState;
+    const delta = ev.clientX - startX;
+    const nc = [...c];
+    nc[ci]   = Math.max(80, c[ci]+delta);
+    nc[ci+1] = Math.max(80, c[ci+1]-delta);
+    grid.style.gridTemplateColumns = nc.map(v=>v+'px').join(' ');
+    positionGridHandles();
+  };
+  const onUp = () => {
+    if(_gridResizeState){
+      _cfg.layout = getComputedStyle(grid).gridTemplateColumns;
+      saveConfig();
+      document.querySelectorAll('.grid-resize-handle').forEach(h=>h.classList.remove('dragging'));
+    }
+    _gridResizeState = null;
+    document.removeEventListener('mousemove', onMove);
+    document.removeEventListener('mouseup', onUp);
+  };
+  document.addEventListener('mousemove', onMove);
+  document.addEventListener('mouseup', onUp);
+}
+
 // ── INIT ───────────────────────────────────────────────────
 // Config primeiro — para que woodRefreshMins e woodWorkerUrl
 // já estejam disponíveis quando loadWood() rodar
 loadCfg(); applyAllConfig(); applyAllBlockFonts();
+initGridResize();
+window.addEventListener('resize', ()=>requestAnimationFrame(positionGridHandles));
 
 loadMare(); loadClima(); loadCambio();
 loadNavios(); loadLineup();
