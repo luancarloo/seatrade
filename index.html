@@ -557,6 +557,46 @@ body{font-family:'DM Sans',sans-serif;background:#F0F2F5;color:#1a1d23;font-size
         </div>
       </div>
 
+      <!-- Atualização automática do estoque -->
+      <div style="margin-top:18px;">
+        <div style="font-size:12px;font-weight:600;color:#475569;margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px;">🔄 Atualização Automática — Estoque</div>
+
+        <div style="background:#f8f9fb;border-radius:10px;border:1px solid #e2e5ec;padding:14px;margin-bottom:12px;">
+          <div style="font-size:11px;font-weight:600;color:#475569;margin-bottom:8px;">Intervalo de atualização</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;" id="woodRefreshBtns">
+            <button onclick="setWoodRefresh(0)"  class="wr-btn" data-v="0"  style="padding:6px 10px;border-radius:6px;border:1px solid #e2e5ec;background:#fff;font-size:11px;cursor:pointer;font-family:inherit;">Off</button>
+            <button onclick="setWoodRefresh(2)"  class="wr-btn" data-v="2"  style="padding:6px 10px;border-radius:6px;border:1px solid #e2e5ec;background:#fff;font-size:11px;cursor:pointer;font-family:inherit;">2 min</button>
+            <button onclick="setWoodRefresh(5)"  class="wr-btn" data-v="5"  style="padding:6px 10px;border-radius:6px;border:1px solid #1a3a6b;background:#1a3a6b;color:#fff;font-size:11px;cursor:pointer;font-family:inherit;">5 min</button>
+            <button onclick="setWoodRefresh(10)" class="wr-btn" data-v="10" style="padding:6px 10px;border-radius:6px;border:1px solid #e2e5ec;background:#fff;font-size:11px;cursor:pointer;font-family:inherit;">10 min</button>
+            <button onclick="setWoodRefresh(15)" class="wr-btn" data-v="15" style="padding:6px 10px;border-radius:6px;border:1px solid #e2e5ec;background:#fff;font-size:11px;cursor:pointer;font-family:inherit;">15 min</button>
+            <button onclick="setWoodRefresh(30)" class="wr-btn" data-v="30" style="padding:6px 10px;border-radius:6px;border:1px solid #e2e5ec;background:#fff;font-size:11px;cursor:pointer;font-family:inherit;">30 min</button>
+          </div>
+        </div>
+
+        <div style="background:#f8f9fb;border-radius:10px;border:1px solid #e2e5ec;padding:14px;">
+          <div style="font-size:11px;font-weight:600;color:#475569;margin-bottom:6px;">Worker URL <span style="font-weight:400;color:#94a3b8;">(deixe vazio para usar o padrão)</span></div>
+          <input type="text" id="woodWorkerUrlInput" placeholder="https://wood-proxy.luancarloo.workers.dev"
+            value="" oninput="_cfg.woodWorkerUrl=this.value;saveConfig();"
+            style="width:100%;padding:7px 10px;border:1px solid #e2e5ec;border-radius:6px;font-size:11px;font-family:'DM Mono',monospace;margin-bottom:10px;">
+
+          <div style="font-size:11px;font-weight:600;color:#475569;margin-bottom:6px;">Chave de Upload (Admin) <span style="font-weight:400;color:#94a3b8;">— quem tem a chave pode sincronizar para todos</span></div>
+          <div style="display:flex;gap:6px;">
+            <input type="password" id="woodWorkerKeyInput" placeholder="porto-sfs-2025"
+              value="" oninput="_cfg.woodWorkerKey=this.value;saveConfig();"
+              style="flex:1;padding:7px 10px;border:1px solid #e2e5ec;border-radius:6px;font-size:11px;font-family:'DM Mono',monospace;">
+            <button onclick="testWoodWorker()" style="padding:7px 12px;border-radius:6px;border:1px solid #e2e5ec;background:#fff;font-size:11px;cursor:pointer;font-family:inherit;">Testar</button>
+          </div>
+
+          <div style="margin-top:10px;display:flex;gap:6px;">
+            <label style="flex:1;padding:8px 12px;border-radius:7px;border:2px dashed #10b981;cursor:pointer;background:#f0fdf4;display:flex;align-items:center;gap:8px;font-size:11px;font-weight:600;color:#065f46;">
+              📂 Enviar planilha ao Worker
+              <input type="file" accept=".xlsx,.xls" style="display:none;" onchange="loadAndPushToWorker(this)">
+            </label>
+          </div>
+          <div id="workerStatus" style="margin-top:8px;font-size:10px;color:#94a3b8;"></div>
+        </div>
+      </div>
+
       <div style="margin-top:18px;">
         <div style="font-size:12px;font-weight:600;color:#475569;margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px;">Berços no Lineup</div>
         <div style="font-size:11px;color:#94a3b8;margin-bottom:10px;">Selecione quais berços serão exibidos na programação de navios</div>
@@ -1751,63 +1791,135 @@ function renderWoodRows(){
 
 // ── Carrega/inicializa dados ──────────────────────────────
 // URL do arquivo no SharePoint (link público de visualização)
-// ── Cloudflare Worker que faz proxy do SharePoint (sem CORS) ──
-// Após criar o worker, coloque a URL correta aqui:
+// ── Cloudflare Worker que faz proxy do SharePoint ──────────────
 const WOOD_WORKER_URL = 'https://wood-proxy.luancarloo.workers.dev';
 
-async function loadWood(){
-  const btn=event?.target; if(btn){btn.innerHTML='<span class="sp">↻</span>';btn.disabled=true;}
-  let loaded = false;
+// ── Google Sheets — busca direta no browser (CORS liberado pelo Google) ──────
+const GSHEETS_ID   = '1YsNk_fKhtLRSJa1Hq8wqapbxuB2vJ4a7NV3AKfrNGB8';
+const GSHEETS_CSV  = `https://docs.google.com/spreadsheets/d/${GSHEETS_ID}/gviz/tq?tqx=out:csv`;
+const GSHEETS_CSV2 = `https://docs.google.com/spreadsheets/d/${GSHEETS_ID}/export?format=csv`;
 
-  // Carrega SheetJS se necessário
+// ── Auto-refresh ────────────────────────────────────────────────
+let _woodRefreshTimer = null;
+let _woodLastFile = null; // guarda o ArrayBuffer do último arquivo carregado localmente
+
+function startWoodAutoRefresh(){
+  if(_woodRefreshTimer) clearInterval(_woodRefreshTimer);
+  const mins = _cfg.woodRefreshMins || 5;
+  if(!mins) return; // 0 = desativado
+  _woodRefreshTimer = setInterval(()=>loadWood(true), mins * 60 * 1000);
+}
+
+function stopWoodAutoRefresh(){
+  if(_woodRefreshTimer){ clearInterval(_woodRefreshTimer); _woodRefreshTimer = null; }
+}
+
+async function loadWood(silent=false){
+  const btn = silent ? null : event?.target;
+  if(btn){ btn.innerHTML='<span class="sp">↻</span>'; btn.disabled=true; }
+
   await ensureXLSX();
+  let loaded = false;
+  let dataSource = '';
 
-  // Estratégia 1: busca via Cloudflare Worker (sem bloqueio CORS)
-  if(!loaded){
+  // ── Estratégia 1: Worker (proxy SharePoint + KV cache) ─────────
+  const workerUrl = _cfg.woodWorkerUrl || WOOD_WORKER_URL;
+  if(workerUrl){
     try{
-      const r = await fetch(WOOD_WORKER_URL);
+      const ctrl = new AbortController();
+      const t = setTimeout(()=>ctrl.abort(), 18000);
+      const r = await fetch(workerUrl, {signal: ctrl.signal});
+      clearTimeout(t);
       if(r.ok){
         const buf = await r.arrayBuffer();
         const rows = parseWoodExcel(buf);
         if(rows && rows.length){
           _woodData.rows = rows;
           _woodData.dataRef = new Date().toLocaleDateString('pt-BR');
+          dataSource = r.headers.get('X-Data-Source') || 'worker';
           localStorage.setItem('wood_data', JSON.stringify(_woodData));
-          renderWoodHead(); renderWoodRows();
-          document.getElementById('woodUpd').textContent = 'atualizado ' + hm();
           loaded = true;
         }
       }
-    }catch(e){ console.warn('Wood worker:', e.message); }
+    }catch(e){ if(!silent) console.warn('Wood worker:', e.message); }
   }
 
-  // Estratégia 2: cache do localStorage (se worker falhar)
+  // ── Estratégia 2: Google Sheets CSV direto no browser (CORS ok) ──
+  if(!loaded){
+    await ensureXLSX();
+    for(const csvUrl of [GSHEETS_CSV, GSHEETS_CSV2]){
+      try{
+        const ctrl = new AbortController();
+        const t = setTimeout(()=>ctrl.abort(), 12000);
+        const r = await fetch(csvUrl, {signal: ctrl.signal});
+        clearTimeout(t);
+        if(r.ok){
+          const csvText = await r.text();
+          if(csvText && csvText.length > 50){
+            const rows = parseWoodCSV(csvText);
+            if(rows && rows.length){
+              _woodData.rows = rows;
+              _woodData.dataRef = new Date().toLocaleDateString('pt-BR');
+              dataSource = 'gsheets-direct';
+              localStorage.setItem('wood_data', JSON.stringify(_woodData));
+              loaded = true;
+              break;
+            }
+          }
+        }
+      }catch(e){ /* tenta próxima */ }
+    }
+  }
+
+  // ── Estratégia 3: cache localStorage ───────────────────────────
   if(!loaded){
     try{
       const saved = localStorage.getItem('wood_data');
       if(saved){
         _woodData = JSON.parse(saved);
-        renderWoodHead(); renderWoodRows();
-        document.getElementById('woodUpd').textContent = (_woodData.dataRef||'') + ' (cache)';
+        dataSource = 'local-cache';
         loaded = true;
       }
     }catch(e){}
   }
 
-  // Nenhuma estratégia funcionou
+  if(loaded){
+    renderWoodHead(); renderWoodRows();
+    // Label de status
+    const srcLabel = {
+      'gsheets-live':    '🟢 Google Sheets ao vivo',
+      'gsheets-alt':     '🟢 Google Sheets ao vivo',
+      'gsheets-direct':  '🟢 Google Sheets direto',
+      'kv-cache':        '🟡 Cache Worker',
+      'worker':          '🔵 Worker',
+      'local-cache':     '⚪ Cache local',
+    };
+    const base = srcLabel[dataSource] || dataSource || 'ok';
+    document.getElementById('woodUpd').textContent = base + ' · ' + hm();
+    // Total badge
+    const total = (_woodData.rows||[]).reduce((s,r)=>{
+      if(r._group) return s;
+      return s+(r.global||0)+(r.pratico||0)+(r.global2||0)+(r.logimodal||0)+(r.porto||0)+(r.redex||0);
+    },0);
+    const tEl = document.getElementById('woodTotal');
+    if(tEl) tEl.textContent = total>0 ? fmtCbm(total)+' cbm' : '—';
+  }
+
+  // ── Nenhuma estratégia funcionou ────────────────────────────────
   if(!loaded){
     document.getElementById('woodBody').innerHTML = `
       <div style="padding:14px 12px;">
         <div style="font-size:12px;font-weight:600;color:#92400e;margin-bottom:8px;">⚠ Planilha não carregada</div>
         <div style="font-size:11px;color:#94a3b8;margin-bottom:12px;">
-          Proxy indisponível. Carregue o arquivo Excel diretamente ou insira os dados manualmente.
+          Worker indisponível e sem cache local.<br>
+          Carregue o arquivo Excel ou configure o Worker.
         </div>
         <div style="display:flex;flex-direction:column;gap:8px;">
           <label style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:8px;border:2px dashed #10b981;cursor:pointer;background:#f0fdf4;">
             <span style="font-size:18px;">📂</span>
             <div>
               <div style="font-size:12px;font-weight:600;color:#065f46;">Carregar planilha Excel (.xlsx)</div>
-              <div style="font-size:10px;color:#6b7280;">Selecione o arquivo do computador</div>
+              <div style="font-size:10px;color:#6b7280;">Selecione o arquivo — será enviado ao Worker</div>
             </div>
             <input type="file" accept=".xlsx,.xls" style="display:none;" onchange="loadWoodFromFile(this)">
           </label>
@@ -1819,7 +1931,11 @@ async function loadWood(){
     renderWoodHead();
     document.getElementById('woodUpd').textContent = 'sem conexão';
   }
-  if(btn){btn.innerHTML='↻';btn.disabled=false;}
+
+  // ── Reinicia o timer de auto-refresh ───────────────────────────
+  startWoodAutoRefresh();
+
+  if(btn){ btn.innerHTML='↻'; btn.disabled=false; }
 }
 
 // Parse do Excel usando SheetJS (carregado dinamicamente)
@@ -1840,44 +1956,7 @@ function parseWoodExcel(buffer){
     const wb = XLSX.read(new Uint8Array(buffer), {type:'array'});
     const ws = wb.Sheets[wb.SheetNames[0]];
     const data = XLSX.utils.sheet_to_json(ws, {header:1, defval:null});
-
-    // Detecta linha de colunas (contém GLOBAL, PRÁTICO etc.)
-    let colRow = -1;
-    for(let i=0;i<data.length;i++){
-      const row = (data[i]||[]).map(v=>String(v||'').toUpperCase().trim());
-      if(row.some(v=>v==='GLOBAL'||v.includes('PRÁTICO')||v.includes('PRATICO'))){
-        colRow = i; break;
-      }
-    }
-    if(colRow < 0) return null;
-
-    const cols = (data[colRow]||[]).map(v=>String(v||'').toUpperCase().trim());
-    const idx = {
-      global:    cols.findIndex(v=>v==='GLOBAL'),
-      pratico:   cols.findIndex(v=>v.includes('PRÁT')||v.includes('PRAT')),
-      global2:   (() => { let f=cols.findIndex(v=>v==='GLOBAL'); return cols.findIndex((v,i)=>v==='GLOBAL'&&i>f); })(),
-      logimodal: cols.findIndex(v=>v.includes('LOGIM')),
-      porto:     cols.findIndex(v=>v==='PORTO'),
-      redex:     cols.findIndex(v=>v.includes('REDEX')),
-      exp:       cols.findIndex(v=>v.includes('EXPORT')||v==='CMM'),
-    };
-
-    const rows = [];
-    for(let i=colRow+1; i<data.length; i++){
-      const row = data[i]||[];
-      // Coluna exportador: tenta col B(1), C(2) ou D(3)
-      const exp = String(row[2]||row[1]||'').trim();
-      const cmm = String(row[3]||'').trim();
-      if(!exp) continue;
-      if(exp.toUpperCase().includes('TOTAL')) break;
-      const num = k => idx[k]>=0 ? (parseFloat(row[idx[k]])||0) : 0;
-      const hasData = ['global','pratico','global2','logimodal','porto','redex'].some(k=>num(k)>0);
-      if(!hasData && !exp) continue;
-      rows.push({ exportador:exp, cmm:cmm!==exp?cmm:'',
-        global:num('global'), pratico:num('pratico'), global2:num('global2'),
-        logimodal:num('logimodal'), porto:num('porto'), redex:num('redex') });
-    }
-    return rows.length ? rows : null;
+    return _parseWoodData(data);
   }catch(e){ return null; }
 }
 
@@ -2036,6 +2115,56 @@ function clearWoodData(){
   renderWoodEditorRows();
 }
 
+// ── Parse de CSV do Google Sheets via SheetJS ────────────────────
+function parseWoodCSV(csvText){
+  try{
+    if(typeof XLSX === 'undefined') return null;
+    // Remove prefixo de callback que o gviz/tq às vezes adiciona
+    const clean = csvText.replace(/^\/\*O_o\*\/\s*[\w.]+\(/, '').replace(/\);?\s*$/, '');
+    const wb = XLSX.read(clean, {type:'string'});
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    const data = XLSX.utils.sheet_to_json(ws, {header:1, defval:null});
+    return _parseWoodData(data);
+  }catch(e){ console.warn('parseWoodCSV:', e); return null; }
+}
+
+// ── Núcleo de parse (compartilhado por Excel e CSV) ──────────────
+function _parseWoodData(data){
+  // Detecta linha de colunas (contém GLOBAL, PRÁTICO etc.)
+  let colRow = -1;
+  for(let i=0;i<data.length;i++){
+    const row = (data[i]||[]).map(v=>String(v||'').toUpperCase().trim());
+    if(row.some(v=>v==='GLOBAL'||v.includes('PRÁT')||v.includes('PRAT'))){
+      colRow = i; break;
+    }
+  }
+  if(colRow < 0) return null;
+  const cols = (data[colRow]||[]).map(v=>String(v||'').toUpperCase().trim());
+  const idx = {
+    global:    cols.findIndex(v=>v==='GLOBAL'),
+    pratico:   cols.findIndex(v=>v.includes('PRÁT')||v.includes('PRAT')),
+    global2:   (()=>{ let f=cols.findIndex(v=>v==='GLOBAL'); return cols.findIndex((v,i)=>v==='GLOBAL'&&i>f); })(),
+    logimodal: cols.findIndex(v=>v.includes('LOGIM')),
+    porto:     cols.findIndex(v=>v==='PORTO'),
+    redex:     cols.findIndex(v=>v.includes('REDEX')),
+  };
+  const rows = [];
+  for(let i=colRow+1;i<data.length;i++){
+    const row = data[i]||[];
+    const exp = String(row[2]||row[1]||'').trim();
+    const cmm = String(row[3]||'').trim();
+    if(!exp) continue;
+    if(exp.toUpperCase().includes('TOTAL')) break;
+    const num = k => idx[k]>=0 ? (parseFloat(row[idx[k]])||0) : 0;
+    const hasData = ['global','pratico','global2','logimodal','porto','redex'].some(k=>num(k)>0);
+    if(!hasData && !exp) continue;
+    rows.push({exportador:exp, cmm:cmm!==exp?cmm:'',
+      global:num('global'), pratico:num('pratico'), global2:num('global2'),
+      logimodal:num('logimodal'), porto:num('porto'), redex:num('redex')});
+  }
+  return rows.length ? rows : null;
+}
+
 async function loadWoodFromFile(input){
   if(!input.files || !input.files.length) return;
   const file = input.files[0];
@@ -2046,8 +2175,10 @@ async function loadWoodFromFile(input){
     return;
   }
   const reader = new FileReader();
-  reader.onload = function(e){
-    const rows = parseWoodExcel(e.target.result);
+  reader.onload = async function(e){
+    const buf = e.target.result;
+    _woodLastFile = buf; // guarda para eventual envio posterior
+    const rows = parseWoodExcel(buf);
     if(rows && rows.length){
       _woodData.rows = rows;
       _woodData.dataRef = new Date().toLocaleDateString('pt-BR');
@@ -2057,15 +2188,55 @@ async function loadWoodFromFile(input){
         if(r._group) return s;
         return s+(r.global||0)+(r.pratico||0)+(r.global2||0)+(r.logimodal||0)+(r.porto||0)+(r.redex||0);
       },0);
-      const el = document.getElementById('woodTotal');
-      if(el) el.textContent = total>0 ? fmtCbm(total)+' cbm' : '—';
-      document.getElementById('woodUpd').textContent = file.name.replace(/\.[^.]+$/,'');
+      const tEl = document.getElementById('woodTotal');
+      if(tEl) tEl.textContent = total>0 ? fmtCbm(total)+' cbm' : '—';
+      document.getElementById('woodUpd').textContent = '📂 ' + file.name.replace(/\.[^.]+$/,'');
+
+      // ── Envia ao Worker automaticamente se a chave estiver configurada ──
+      const key = _cfg.woodWorkerKey || '';
+      const workerUrl = _cfg.woodWorkerUrl || WOOD_WORKER_URL;
+      if(key && workerUrl){
+        await pushToWorker(buf, key, workerUrl);
+      } else if(workerUrl && !key){
+        // Mostra dica de configuração
+        const upd = document.getElementById('woodUpd');
+        if(upd) upd.textContent += ' · configure a chave para sincronizar';
+      }
     } else {
       alert('Não foi possível ler os dados da planilha.\nVerifique se o arquivo possui as colunas: GLOBAL, PRÁTICO, LOGIMODAL, PORTO, REDEX.');
     }
   };
   reader.onerror = ()=>alert('Erro ao ler o arquivo.');
   reader.readAsArrayBuffer(file);
+}
+
+// ── Envia o arquivo Excel ao Worker (sincroniza para todos) ──────
+async function pushToWorker(buf, key, workerUrl){
+  const upd = document.getElementById('woodUpd');
+  const orig = upd?.textContent || '';
+  if(upd) upd.textContent = '⬆ Enviando ao Worker…';
+  try{
+    const r = await fetch(workerUrl, {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + key,
+        'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      },
+      body: buf,
+    });
+    if(r.ok){
+      const d = await r.json().catch(()=>({}));
+      if(upd) upd.textContent = '✅ Sincronizado · ' + hm();
+      return true;
+    } else {
+      const msg = r.status === 401 ? 'Chave inválida' : 'Erro ' + r.status;
+      if(upd) upd.textContent = '⚠ ' + msg + ' · ' + orig;
+      return false;
+    }
+  }catch(e){
+    if(upd) upd.textContent = '⚠ Sem rede · ' + orig;
+    return false;
+  }
 }
 
 
@@ -2138,6 +2309,9 @@ let _cfg = {
   rotTimer:10, rotActive:false,
   seatradeBg:'#1e3a8a', seatradeText:'#ffffff',
   bercosFiltro: null, // null = todos; array de strings = filtro ativo
+  woodRefreshMins: 5,            // intervalo de auto-refresh do estoque (0 = desativado)
+  woodWorkerUrl: '',             // URL do Worker (vazio = usa padrão)
+  woodWorkerKey: '',             // chave secreta para upload admin
 };
 
 function getBlocoEl(id){
@@ -2230,7 +2404,7 @@ function applyAllConfig(){
 function openConfig(){
   document.getElementById('cfgOverlay').style.display='block';
   document.getElementById('cfgPanel').style.display='flex';
-  buildBlocosList(); buildRotacaoList(); syncConfigUI(); buildBercosFiltro(); buildWoodColsToggle(); syncCustomThemePickers();
+  buildBlocosList(); buildRotacaoList(); syncConfigUI(); buildBercosFiltro(); buildWoodColsToggle(); syncWoodRefreshUI(); syncCustomThemePickers();
 }
 function closeConfig(){
   document.getElementById('cfgOverlay').style.display='none';
@@ -2671,6 +2845,88 @@ function blocoDragEnd(e){
   });
 }
 
+function setWoodRefresh(mins){
+  _cfg.woodRefreshMins = mins;
+  saveConfig();
+  stopWoodAutoRefresh();
+  if(mins > 0) startWoodAutoRefresh();
+  // Atualiza botões
+  document.querySelectorAll('.wr-btn').forEach(b=>{
+    const on = +b.dataset.v === mins;
+    b.style.background = on ? '#1a3a6b' : '#fff';
+    b.style.color = on ? '#fff' : '#475569';
+    b.style.borderColor = on ? '#1a3a6b' : '#e2e5ec';
+  });
+}
+
+function syncWoodRefreshUI(){
+  const mins = _cfg.woodRefreshMins ?? 5;
+  document.querySelectorAll('.wr-btn').forEach(b=>{
+    const on = +b.dataset.v === mins;
+    b.style.background = on ? '#1a3a6b' : '#fff';
+    b.style.color = on ? '#fff' : '#475569';
+    b.style.borderColor = on ? '#1a3a6b' : '#e2e5ec';
+  });
+  const urlIn = document.getElementById('woodWorkerUrlInput');
+  if(urlIn) urlIn.value = _cfg.woodWorkerUrl || '';
+  const keyIn = document.getElementById('woodWorkerKeyInput');
+  if(keyIn) keyIn.value = _cfg.woodWorkerKey || '';
+}
+
+async function testWoodWorker(){
+  const workerUrl = (_cfg.woodWorkerUrl || WOOD_WORKER_URL).trim();
+  const st = document.getElementById('workerStatus');
+  if(st) st.textContent = '⏳ Testando…';
+  try{
+    const r = await fetch(workerUrl, {method:'GET', signal: AbortSignal.timeout(10000)});
+    const src = r.headers.get('X-Data-Source') || '?';
+    if(r.ok){
+      if(st) st.textContent = '✅ Worker OK · fonte: ' + src + ' · ' + r.headers.get('Content-Type');
+    } else {
+      if(st) st.textContent = '⚠ Worker respondeu ' + r.status;
+    }
+  }catch(e){
+    if(st) st.textContent = '❌ Não alcançado: ' + e.message;
+  }
+}
+
+async function loadAndPushToWorker(input){
+  if(!input.files?.length) return;
+  const file = input.files[0];
+  input.value = '';
+  const st = document.getElementById('workerStatus');
+  if(st) st.textContent = '📂 Lendo arquivo…';
+  await ensureXLSX();
+  const reader = new FileReader();
+  reader.onload = async function(e){
+    const buf = e.target.result;
+    const rows = parseWoodExcel(buf);
+    if(!rows?.length){
+      if(st) st.textContent = '❌ Não foi possível ler o Excel.';
+      return;
+    }
+    const key = _cfg.woodWorkerKey || '';
+    const workerUrl = (_cfg.woodWorkerUrl || WOOD_WORKER_URL).trim();
+    if(!key){
+      if(st) st.textContent = '⚠ Configure a Chave de Upload acima.';
+      return;
+    }
+    if(st) st.textContent = '⬆ Enviando…';
+    const ok = await pushToWorker(buf, key, workerUrl);
+    if(ok){
+      if(st) st.textContent = '✅ Sincronizado com sucesso! Todos os dashboards verão os dados na próxima atualização.';
+      // Também aplica localmente
+      _woodData.rows = rows;
+      _woodData.dataRef = new Date().toLocaleDateString('pt-BR');
+      localStorage.setItem('wood_data', JSON.stringify(_woodData));
+      renderWoodHead(); renderWoodRows();
+    } else {
+      if(st) st.textContent = '❌ Falha no envio. Verifique a chave e a URL.';
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
 function buildWoodColsToggle(){
   const cont = document.getElementById('woodColsToggle');
   if(!cont) return;
@@ -2968,20 +3224,23 @@ function buildTicker(){
 }
 
 // ── INIT ───────────────────────────────────────────────────
+// Config primeiro — para que woodRefreshMins e woodWorkerUrl
+// já estejam disponíveis quando loadWood() rodar
+loadCfg(); applyAllConfig(); applyAllBlockFonts();
+
 loadMare(); loadClima(); loadCambio();
-loadNavios(); loadLineup(); loadWood();
+loadNavios(); loadLineup();
+loadWood(); // startWoodAutoRefresh() é chamado dentro de loadWood()
 
-setInterval(loadClima,    10*60*1000);
-setInterval(loadCambio,    5*60*1000);
-setInterval(loadMare,         60*1000);
-setInterval(loadNavios,    5*60*1000);
-setInterval(loadLineup,   10*60*1000);
-setInterval(loadWood,     15*60*1000);
-
+// Intervalos fixos para os demais blocos
+setInterval(loadClima,             10*60*1000);
+setInterval(loadCambio,             5*60*1000);
+setInterval(loadMare,                  60*1000);
+setInterval(loadNavios,             5*60*1000);
+setInterval(loadLineup,            10*60*1000);
+// Wood: gerenciado por startWoodAutoRefresh() dentro de loadWood()
 
 // ════════════════════════════════════════════════════════
-
-loadCfg(); applyAllConfig(); applyAllBlockFonts();
 </script>
 </body>
 </html>
