@@ -311,6 +311,7 @@ body{font-family:'DM Sans',sans-serif;background:#F0F2F5;color:#1a1d23;font-size
     <button class="cfg-tab" onclick="cfgTab(this,'tFonte')" style="flex:1;padding:10px 4px;border:none;background:none;font-size:11px;font-weight:600;color:#94a3b8;border-bottom:2px solid transparent;cursor:pointer;font-family:inherit;">Aa Fonte</button>
     <button class="cfg-tab" onclick="cfgTab(this,'tLayout')" style="flex:1;padding:10px 4px;border:none;background:none;font-size:11px;font-weight:600;color:#94a3b8;border-bottom:2px solid transparent;cursor:pointer;font-family:inherit;">⊞ Layout</button>
     <button class="cfg-tab" onclick="cfgTab(this,'tClima')" style="flex:1;padding:10px 4px;border:none;background:none;font-size:11px;font-weight:600;color:#94a3b8;border-bottom:2px solid transparent;cursor:pointer;font-family:inherit;">🌤 Clima</button>
+    <button class="cfg-tab" onclick="cfgTab(this,'tSync')" style="flex:1;padding:10px 4px;border:none;background:none;font-size:11px;font-weight:600;color:#94a3b8;border-bottom:2px solid transparent;cursor:pointer;font-family:inherit;">📡 Sync</button>
   </div>
 
   <!-- Conteúdo rolável -->
@@ -881,6 +882,41 @@ body{font-family:'DM Sans',sans-serif;background:#F0F2F5;color:#1a1d23;font-size
           <span style="font-size:16px;">📡</span>
           <div><div style="font-size:12px;font-weight:500;">INMET · Estação São Francisco do Sul</div><div style="font-size:10px;color:#94a3b8;">inmet.gov.br · dados oficiais ↗</div></div>
         </a>
+      </div>
+    </div>
+
+    <!-- ── SINCRONIZAÇÃO POR DISPOSITIVO ────────────── -->
+    <div id="tSync" class="cfg-section" style="display:none;">
+      <div style="font-size:12px;font-weight:600;color:#475569;margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px;">Sincronização por dispositivo</div>
+      <div style="font-size:11px;color:#94a3b8;margin-bottom:14px;line-height:1.5;">
+        Cada TV/dispositivo guarda sua própria configuração (tema, fontes, layout, blocos) na nuvem.
+        Se o navegador da TV limpar os dados ao reiniciar, a configuração volta automaticamente —
+        desde que esta TV continue abrindo o link fixo abaixo (favorito/página inicial).
+      </div>
+
+      <div style="padding:12px;background:#f8f9fb;border-radius:8px;border:1px solid #e2e5ec;margin-bottom:12px;">
+        <div style="font-size:11px;font-weight:600;color:#475569;margin-bottom:6px;">Nome deste dispositivo</div>
+        <div style="display:flex;gap:8px;">
+          <input type="text" id="deviceNameInput" placeholder="Ex: TV Sala de Operações" style="flex:1;padding:8px 10px;border:1px solid #e2e5ec;border-radius:6px;font-size:12px;font-family:inherit;box-sizing:border-box;">
+          <button onclick="renameDevice()" style="padding:8px 14px;border-radius:6px;border:none;background:#1a3a6b;color:#fff;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;">Salvar</button>
+        </div>
+      </div>
+
+      <div style="padding:12px;background:#f8f9fb;border-radius:8px;border:1px solid #e2e5ec;margin-bottom:12px;">
+        <div style="font-size:11px;font-weight:600;color:#475569;margin-bottom:6px;">Link fixo desta TV</div>
+        <div style="font-size:10px;color:#94a3b8;margin-bottom:8px;">Salve este link como página inicial/favorito no navegador da TV — é ele que identifica este dispositivo na nuvem.</div>
+        <div style="display:flex;gap:8px;">
+          <input type="text" id="deviceUrlInput" readonly style="flex:1;padding:8px 10px;border:1px solid #e2e5ec;border-radius:6px;font-size:10px;font-family:'DM Mono',monospace;background:#fff;color:#475569;box-sizing:border-box;">
+          <button onclick="copyDeviceUrl()" style="padding:8px 14px;border-radius:6px;border:1px solid #e2e5ec;background:#fff;font-size:11px;cursor:pointer;font-family:inherit;white-space:nowrap;">📋 Copiar</button>
+        </div>
+      </div>
+
+      <div style="padding:12px;background:#f8f9fb;border-radius:8px;border:1px solid #e2e5ec;display:flex;align-items:center;justify-content:space-between;gap:10px;">
+        <div>
+          <div style="font-size:11px;font-weight:600;color:#475569;">Status da sincronização</div>
+          <div id="syncStatusLabel" style="font-size:11px;color:#94a3b8;margin-top:2px;">verificando…</div>
+        </div>
+        <button onclick="forceSyncNow()" style="padding:8px 14px;border-radius:6px;border:1px solid #e2e5ec;background:#fff;font-size:11px;cursor:pointer;font-family:inherit;white-space:nowrap;">↻ Sincronizar agora</button>
       </div>
     </div>
 
@@ -1799,7 +1835,7 @@ let _woodColsVisible = JSON.parse(localStorage.getItem('wood_cols_vis') || 'null
 
 function visibleWoodCols(){ return WOOD_COLS.filter(c=>_woodColsVisible[c.key]!==false); }
 
-function saveWoodColVis(){ localStorage.setItem('wood_cols_vis', JSON.stringify(_woodColsVisible)); }
+function saveWoodColVis(){ localStorage.setItem('wood_cols_vis', JSON.stringify(_woodColsVisible)); queueCloudSync(); }
 
 function fmtCbm(v){
   if(!v && v!==0) return '—';
@@ -2449,6 +2485,179 @@ function loadCfg(){
 }
 function saveConfig(){
   localStorage.setItem(CFG_KEY,JSON.stringify(_cfg));
+  queueCloudSync();
+}
+
+// ── Sincronização de configuração por dispositivo (TV) ──────────────────────
+// Cada navegador/TV tem um device_id (na URL ?device=... + localStorage).
+// A config (_cfg + visibilidade de colunas) é espelhada no Worker (KV), então
+// mesmo que o navegador da TV limpe o armazenamento ao reiniciar, basta a TV
+// continuar abrindo a MESMA URL (com ?device=...) para a config voltar.
+function getDeviceId(){
+  const url = new URL(location.href);
+  const fromUrl = url.searchParams.get('device');
+  if(fromUrl){ localStorage.setItem('device_id', fromUrl); return fromUrl; }
+  return localStorage.getItem('device_id') || '';
+}
+function getDeviceName(){ return localStorage.getItem('device_name') || ''; }
+
+function slugify(s){
+  const noAccents = String(s).normalize('NFD').replace(/[^\x00-\x7F]/g,'');
+  return noAccents.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,40) || 'tv';
+}
+
+function _workerBase(){ return (_cfg.woodWorkerUrl || WOOD_WORKER_URL).replace(/\/$/,''); }
+
+let _cloudSyncTimer = null;
+function queueCloudSync(){
+  clearTimeout(_cloudSyncTimer);
+  _cloudSyncTimer = setTimeout(pushConfigNow, 1500);
+}
+
+async function pushConfigNow(){
+  const device = getDeviceId();
+  if(!device){ setSyncStatus('no-device'); return; }
+  const payload = JSON.stringify({
+    cfg: _cfg, woodColsVis: _woodColsVisible,
+    deviceName: getDeviceName(), savedAt: new Date().toISOString(),
+  });
+  try{
+    const ctrl = new AbortController();
+    const t = setTimeout(()=>ctrl.abort(), 8000);
+    const r = await fetch(`${_workerBase()}/config?device=${encodeURIComponent(device)}`, {
+      method:'POST', headers:{'Content-Type':'application/json'}, body: payload, signal: ctrl.signal,
+    });
+    clearTimeout(t);
+    setSyncStatus(r.ok ? 'ok' : 'error');
+  }catch(e){ setSyncStatus('offline'); }
+}
+
+async function loadCfgFromCloud(){
+  const device = getDeviceId();
+  if(!device){ setSyncStatus('no-device'); return false; }
+  try{
+    const ctrl = new AbortController();
+    const t = setTimeout(()=>ctrl.abort(), 8000);
+    const r = await fetch(`${_workerBase()}/config?device=${encodeURIComponent(device)}`, {signal: ctrl.signal});
+    clearTimeout(t);
+    if(r.ok){
+      const d = await r.json();
+      if(d.cfg) _cfg = Object.assign({}, _cfg, d.cfg);
+      if(d.woodColsVis) _woodColsVisible = d.woodColsVis;
+      if(d.deviceName) localStorage.setItem('device_name', d.deviceName);
+      localStorage.setItem(CFG_KEY, JSON.stringify(_cfg));
+      localStorage.setItem('wood_cols_vis', JSON.stringify(_woodColsVisible));
+      setSyncStatus('ok');
+      return true;
+    }
+    setSyncStatus(r.status===404 ? 'pending' : 'error');
+  }catch(e){ setSyncStatus('offline'); }
+  return false;
+}
+
+function setSyncStatus(state){
+  const labels = {
+    ok:          '✅ Sincronizado · '+hm(),
+    error:       '⚠ Erro ao sincronizar com o Worker',
+    offline:     '⚠ Sem conexão com o Worker',
+    'no-device': '◌ Dê um nome a este dispositivo abaixo',
+    pending:     '◌ Aguardando primeira sincronização',
+  };
+  const el = document.getElementById('syncStatusLabel');
+  if(el) el.textContent = labels[state] || state;
+}
+
+function syncDeviceUI(){
+  const id = getDeviceId();
+  const nameInput = document.getElementById('deviceNameInput');
+  if(nameInput) nameInput.value = getDeviceName();
+  const urlInput = document.getElementById('deviceUrlInput');
+  if(urlInput){
+    const url = new URL(location.href);
+    if(id) url.searchParams.set('device', id);
+    urlInput.value = url.toString();
+  }
+}
+
+function renameDevice(){
+  const input = document.getElementById('deviceNameInput');
+  const name = (input?.value || '').trim();
+  if(!name) return;
+  let id = getDeviceId();
+  if(!id){
+    id = slugify(name) + '-' + Math.random().toString(36).slice(2,6);
+    const url = new URL(location.href);
+    url.searchParams.set('device', id);
+    history.replaceState(null, '', url.toString());
+    localStorage.setItem('device_id', id);
+  }
+  localStorage.setItem('device_name', name);
+  syncDeviceUI();
+  pushConfigNow();
+}
+
+function copyDeviceUrl(){
+  const input = document.getElementById('deviceUrlInput');
+  if(!input || !input.value) return;
+  navigator.clipboard?.writeText(input.value).catch(()=>{});
+  const btn = event?.target;
+  if(btn){ const orig=btn.textContent; btn.textContent='Copiado ✓'; setTimeout(()=>{btn.textContent=orig;},1500); }
+}
+
+function forceSyncNow(){ pushConfigNow(); }
+
+// ── Configuração inicial do dispositivo (primeira vez no navegador) ─────────
+function ensureDeviceSetup(){
+  if(getDeviceId()) return;
+  openDeviceSetupModal();
+}
+
+function openDeviceSetupModal(){
+  if(document.getElementById('deviceSetupModal')) return;
+  const div = document.createElement('div');
+  div.id = 'deviceSetupModal';
+  div.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:3000;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(3px);';
+  div.innerHTML = `
+    <div style="background:#fff;border-radius:12px;width:420px;max-width:90vw;padding:22px;font-family:inherit;">
+      <div style="font-size:15px;font-weight:700;color:#1a1d23;margin-bottom:8px;">📡 Identifique este dispositivo</div>
+      <div style="font-size:12px;color:#6b7280;line-height:1.5;margin-bottom:14px;">
+        Para que tema, fontes, layout e blocos desta TV fiquem salvos na nuvem e voltem
+        automaticamente mesmo após desligar/religar, dê um nome a este dispositivo.
+      </div>
+      <input type="text" id="deviceSetupInput" placeholder="Ex: TV Sala de Operações" style="width:100%;padding:10px 12px;border:1px solid #e2e5ec;border-radius:7px;font-size:13px;font-family:inherit;margin-bottom:14px;box-sizing:border-box;">
+      <button onclick="confirmDeviceSetup()" style="width:100%;padding:10px;border-radius:7px;border:none;background:#1a3a6b;color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">Continuar</button>
+    </div>`;
+  document.body.appendChild(div);
+  setTimeout(()=>document.getElementById('deviceSetupInput')?.focus(), 50);
+  document.getElementById('deviceSetupInput')?.addEventListener('keydown', e=>{ if(e.key==='Enter') confirmDeviceSetup(); });
+}
+
+function confirmDeviceSetup(){
+  const input = document.getElementById('deviceSetupInput');
+  const name = (input?.value || '').trim() || 'TV';
+  const id = slugify(name) + '-' + Math.random().toString(36).slice(2,6);
+  localStorage.setItem('device_id', id);
+  localStorage.setItem('device_name', name);
+  const url = new URL(location.href);
+  url.searchParams.set('device', id);
+  history.replaceState(null, '', url.toString());
+  document.getElementById('deviceSetupModal')?.remove();
+  showDeviceUrlBanner(url.toString());
+  pushConfigNow();
+}
+
+function showDeviceUrlBanner(url){
+  document.getElementById('deviceUrlBanner')?.remove();
+  const div = document.createElement('div');
+  div.id = 'deviceUrlBanner';
+  div.style.cssText='position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#1a3a6b;color:#fff;padding:12px 18px;border-radius:10px;font-family:inherit;font-size:12px;z-index:3000;box-shadow:0 8px 24px rgba(0,0,0,.3);display:flex;align-items:center;gap:12px;max-width:92vw;flex-wrap:wrap;';
+  div.innerHTML = `
+    <span>✅ Dispositivo configurado! Salve este link como página inicial/favorito da TV:</span>
+    <code style="background:rgba(255,255,255,.15);padding:4px 8px;border-radius:5px;font-family:'DM Mono',monospace;font-size:11px;word-break:break-all;">${url}</code>
+    <button onclick="navigator.clipboard?.writeText('${url}');this.textContent='Copiado!'" style="background:#fff;color:#1a3a6b;border:none;padding:5px 10px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;">Copiar</button>
+    <button onclick="document.getElementById('deviceUrlBanner').remove()" style="background:transparent;color:#fff;border:none;font-size:14px;cursor:pointer;">✕</button>
+  `;
+  document.body.appendChild(div);
 }
 function buildBercosFiltro(){
   const cont = document.getElementById('bercosFiltroLista');
@@ -2527,6 +2736,7 @@ function openConfig(){
   document.getElementById('cfgOverlay').style.display='block';
   document.getElementById('cfgPanel').style.display='flex';
   buildBlocosList(); buildRotacaoList(); syncConfigUI(); buildBercosFiltro(); buildWoodColsToggle(); syncWoodRefreshUI(); syncCustomThemePickers();
+  syncDeviceUI();
 }
 function closeConfig(){
   document.getElementById('cfgOverlay').style.display='none';
@@ -3434,11 +3644,24 @@ function gridResizeStart(e, colIdx){
 }
 
 // ── INIT ───────────────────────────────────────────────────
-// Config primeiro — para que woodRefreshMins e woodWorkerUrl
-// já estejam disponíveis quando loadWood() rodar
+// Config primeiro (localStorage, instantâneo) — para que woodRefreshMins e
+// woodWorkerUrl já estejam disponíveis quando loadWood() rodar
 loadCfg(); applyAllConfig(); applyAllBlockFonts();
 initGridResize();
 window.addEventListener('resize', ()=>requestAnimationFrame(positionGridHandles));
+
+// Identifica o dispositivo (1ª vez no navegador pede um nome) e então busca
+// a config salva na nuvem para este device — sobrescreve o localStorage caso
+// a TV tenha sido resetada e perdido a config local.
+ensureDeviceSetup();
+loadCfgFromCloud().then(updated=>{
+  if(updated){
+    applyAllConfig(); applyAllBlockFonts(); applyBlocosVisibility();
+    renderWoodHead(); renderWoodRows();
+    requestAnimationFrame(positionGridHandles);
+  }
+  syncDeviceUI();
+});
 
 loadMare(); loadClima(); loadCambio();
 loadNavios(); loadLineup();
