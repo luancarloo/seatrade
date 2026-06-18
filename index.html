@@ -1743,6 +1743,12 @@ function woodColResizeStart(e, visIdx){
   };
   const onUp = () => {
     document.querySelector('.wresize.dragging')?.classList.remove('dragging');
+    if(_woodResizeState){
+      // Salvar larguras no _cfg para persistir no cloud/localStorage
+      _cfg.woodColsW = {};
+      WOOD_COLS.forEach(c => { _cfg.woodColsW[c.key] = c.w; });
+      saveConfig();
+    }
     _woodResizeState = null;
     document.removeEventListener('mousemove', onMove);
     document.removeEventListener('mouseup', onUp);
@@ -2497,7 +2503,13 @@ function getDeviceId(){
   const url = new URL(location.href);
   const fromUrl = url.searchParams.get('device');
   if(fromUrl){ localStorage.setItem('device_id', fromUrl); return fromUrl; }
-  return localStorage.getItem('device_id') || '';
+  const fromStorage = localStorage.getItem('device_id');
+  if(fromStorage){
+    // Embutir na URL para que o próximo favorito já inclua o device ID
+    url.searchParams.set('device', fromStorage);
+    history.replaceState(null, '', url.toString());
+  }
+  return fromStorage || '';
 }
 function getDeviceName(){ return localStorage.getItem('device_name') || ''; }
 
@@ -2728,6 +2740,10 @@ function applyAllConfig(){
     _climaSrc=_cfg.climaSrc;
     const r=document.querySelector(`input[name="climaSrc"][value="${_climaSrc}"]`);
     if(r) r.checked=true;
+  }
+  // Restaura larguras das colunas do Estoque Madeira
+  if(_cfg.woodColsW){
+    WOOD_COLS.forEach(c => { if(_cfg.woodColsW[c.key]) c.w = _cfg.woodColsW[c.key]; });
   }
 }
 
@@ -3659,6 +3675,9 @@ loadCfgFromCloud().then(updated=>{
     applyAllConfig(); applyAllBlockFonts(); applyBlocosVisibility();
     renderWoodHead(); renderWoodRows();
     requestAnimationFrame(positionGridHandles);
+  } else if(getDeviceId()){
+    // Nuvem sem config para este device — envia o que está no localStorage
+    queueCloudSync();
   }
   syncDeviceUI();
 });
