@@ -2499,19 +2499,31 @@ function saveConfig(){
 // A config (_cfg + visibilidade de colunas) é espelhada no Worker (KV), então
 // mesmo que o navegador da TV limpe o armazenamento ao reiniciar, basta a TV
 // continuar abrindo a MESMA URL (com ?device=...) para a config voltar.
+// ── Helpers de cookie (fallback quando localStorage é apagado pela TV) ────────
+function _setCookie(k,v,days){ document.cookie=k+'='+encodeURIComponent(v)+';max-age='+(days*86400)+';path=/;SameSite=Lax'; }
+function _getCookie(k){ const m=document.cookie.match('(?:^|; )'+k+'=([^;]*)'); return m?decodeURIComponent(m[1]):''; }
+
+function _setDeviceId(id, name){
+  localStorage.setItem('device_id', id);
+  _setCookie('porto_device_id', id, 365);
+  if(name){ localStorage.setItem('device_name', name); _setCookie('porto_device_name', name, 365); }
+}
+
 function getDeviceId(){
   const url = new URL(location.href);
   const fromUrl = url.searchParams.get('device');
-  if(fromUrl){ localStorage.setItem('device_id', fromUrl); return fromUrl; }
-  const fromStorage = localStorage.getItem('device_id');
+  if(fromUrl){ _setDeviceId(fromUrl); return fromUrl; }
+  // Cookie sobrevive mais que localStorage em navegadores de TV
+  const fromStorage = localStorage.getItem('device_id') || _getCookie('porto_device_id');
   if(fromStorage){
     // Embutir na URL para que o próximo favorito já inclua o device ID
     url.searchParams.set('device', fromStorage);
     history.replaceState(null, '', url.toString());
+    _setDeviceId(fromStorage);
   }
   return fromStorage || '';
 }
-function getDeviceName(){ return localStorage.getItem('device_name') || ''; }
+function getDeviceName(){ return localStorage.getItem('device_name') || _getCookie('porto_device_name') || ''; }
 
 function slugify(s){
   const noAccents = String(s).normalize('NFD').replace(/[^\x00-\x7F]/g,'');
@@ -2601,9 +2613,8 @@ function renameDevice(){
     const url = new URL(location.href);
     url.searchParams.set('device', id);
     history.replaceState(null, '', url.toString());
-    localStorage.setItem('device_id', id);
   }
-  localStorage.setItem('device_name', name);
+  _setDeviceId(id, name);
   syncDeviceUI();
   pushConfigNow();
 }
@@ -2633,9 +2644,9 @@ function openDeviceSetupModal(){
     <div style="background:#fff;border-radius:12px;width:420px;max-width:90vw;padding:22px;font-family:inherit;">
       <div style="font-size:15px;font-weight:700;color:#1a1d23;margin-bottom:8px;">📡 Identifique este dispositivo</div>
       <div style="font-size:12px;color:#6b7280;line-height:1.5;margin-bottom:14px;">
-        Dê um nome fixo a esta TV (ex: <b>TV Sala</b>, <b>TV Porto</b>). O nome identifica
-        esta TV na nuvem — se o navegador apagar os dados, basta digitar o mesmo nome
-        aqui para recuperar todas as configurações automaticamente.
+        Para que tema, fontes, layout e blocos desta TV fiquem salvos na nuvem e voltem
+        automaticamente mesmo após desligar/religar, dê um nome a este dispositivo.
+        <b>Salve o link gerado como favorito/página inicial da TV.</b>
       </div>
       <input type="text" id="deviceSetupInput" placeholder="Ex: TV Sala de Operações" style="width:100%;padding:10px 12px;border:1px solid #e2e5ec;border-radius:7px;font-size:13px;font-family:inherit;margin-bottom:14px;box-sizing:border-box;">
       <button onclick="confirmDeviceSetup()" style="width:100%;padding:10px;border-radius:7px;border:none;background:#1a3a6b;color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">Continuar</button>
@@ -2648,15 +2659,14 @@ function openDeviceSetupModal(){
 async function confirmDeviceSetup(){
   const input = document.getElementById('deviceSetupInput');
   const name = (input?.value || '').trim() || 'TV';
-  const id = slugify(name) || 'tv';
-  localStorage.setItem('device_id', id);
-  localStorage.setItem('device_name', name);
+  const id = slugify(name) + '-' + Math.random().toString(36).slice(2,6);
+  _setDeviceId(id, name);
   const url = new URL(location.href);
   url.searchParams.set('device', id);
   history.replaceState(null, '', url.toString());
   document.getElementById('deviceSetupModal')?.remove();
   showDeviceUrlBanner(url.toString());
-  // Tenta recuperar config existente da nuvem para este nome de dispositivo
+  // Tenta recuperar config existente da nuvem para este device
   const recovered = await loadCfgFromCloud();
   if(recovered){
     applyAllConfig(); applyAllBlockFonts(); applyBlocosVisibility();
