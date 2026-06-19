@@ -1474,6 +1474,7 @@ function parseLineup(html){
         vessel: v[1],
         eta: (v[4]||'').replace(' AM','').replace(' PM','').substring(0,10),
         etb: (v[6]||'').replace(' AM','').replace(' PM','').substring(0,10),
+        etc: (v[8]||'').replace(' AM','').replace(' PM','').substring(0,10),
         carga,
         balance: v[12]||'',
         agent:  (v[13]||'').trim()
@@ -1497,6 +1498,7 @@ let _cols = [
   {key:'carga',   label:'Carga',   w:120, flex:true},
   {key:'eta',     label:'ETA',     w:88,  flex:false},
   {key:'etb',     label:'ETB',     w:88,  flex:false},
+  {key:'etc',     label:'ETC',     w:88,  flex:false},
   {key:'balance', label:'Balance', w:80,  flex:false},
   {key:'agent',   label:'Agência', w:90,  flex:false},
 ];
@@ -1633,6 +1635,8 @@ function renderLineupRows(navios){
         return n.eta||'—';
       case 'etb':
         return `<b>${n.etb||'—'}</b>`;
+      case 'etc':
+        return n.etc||'—';
       case 'balance':
         return n.balance||'—';
       case 'agent':
