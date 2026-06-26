@@ -1227,6 +1227,7 @@ function renderNaviosHead(){
     </div>`;
   }).join('');
   applyNColWidths();
+  reapplyFonts();
 }
 
 function sortNavios(col){
@@ -1317,6 +1318,7 @@ function renderNaviosRows(navios){
     return `<div class="nrow">${cells}</div>`;
   }).join('');
   applyNColWidths();
+  reapplyFonts();
 }
 
 // Drag-reorder navios
@@ -1531,6 +1533,7 @@ function renderLineupHead(){
     </div>`;
   }).join('');
   applyColWidths();
+  reapplyFonts();
 }
 
 // ── Ordenação ────────────────────────────────────────────
@@ -1677,6 +1680,7 @@ function renderLineupRows(navios){
   applyColWidths();
   // Reaplica estilo Seatrade após render (sobrepõe inline styles)
   if(typeof applySeatradeStyle === 'function') applySeatradeStyle();
+  reapplyFonts();
 }
 
 // ── Drag-reorder colunas ─────────────────────────────────
@@ -1875,6 +1879,7 @@ function renderWoodHead(){
     </div>`;
   }).join('');
   applyWoodColWidths();
+  reapplyFonts();
 }
 
 function renderWoodRows(){
@@ -1927,6 +1932,7 @@ function renderWoodRows(){
     const ca = (totals.porto||0)+(totals.redex||0);
     document.getElementById('woodTotal').textContent = fmtCbm(tTot) + ' cbm';
   }
+  reapplyFonts();
 }
 
 // ── Carrega/inicializa dados ──────────────────────────────
@@ -3480,6 +3486,13 @@ function applyAllBlockFonts(){
   });
 }
 
+// Reaplica fonte por bloco + escala global. Necessário após qualquer
+// re-render de linhas/cabeçalhos (eles recriam o HTML e perdem o estilo).
+function reapplyFonts(){
+  applyAllBlockFonts();
+  setFontSize(_cfg.fontSize,false);
+}
+
 // ── Fonte climática ──────────────────────────────────────
 let _climaSrc = 'openmeteo';
 
@@ -3556,6 +3569,7 @@ async function loadClima(){
         <div style="font-size:8px;color:${uvCor};">UV ${uv.toFixed(0)}</div>
       </div>`;
     }).join('');
+    reapplyFonts();
   }catch(e){document.getElementById('wT').textContent='--°C';}
 }
 
@@ -3580,6 +3594,7 @@ async function loadCambio(){
   }else{
     document.getElementById('cambioList').innerHTML='<div style="padding:8px;font-size:11px;color:#94a3b8;">Câmbio indisponível</div>';
   }
+  reapplyFonts();
 }
 
 // ── MARÉ ────────────────────────────────────────────────────
@@ -3590,6 +3605,7 @@ function loadMare(){
     const p=parseInt(td.t)<h;
     return`<div class="tr"><span style="font-size:10px;color:${p?'#94a3b8':'#1a1d23'}">${p?'✓ ':''}<b>${td.tp}</b></span><span style="font-size:10px;font-weight:500;">${td.t} · ${td.v}</span></div>`;
   }).join('');
+  reapplyFonts();
 }
 
 // ── TICKER ─────────────────────────────────────────────────
